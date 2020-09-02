@@ -1,0 +1,8 @@
+#+TITLE: KwdCmd: Keywords to Write Command Lines
+
+Partial porcelain around Cmdliner. Cmdliner is a powerful library
+for composable command lines interfaces, but it's a bit low level, and I always
+have to look up the documentation.
+
+This thin wrapper library is just an executable cookbook for common usage
+patterns of Cmdliner.
