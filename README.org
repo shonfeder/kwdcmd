@@ -6,3 +6,6 @@ have to look up the documentation.
 
 This thin wrapper library is just an executable cookbook for common usage
 patterns of Cmdliner.
+
+This library is in very early stages, and is growing as the need for patterns
+arises.
