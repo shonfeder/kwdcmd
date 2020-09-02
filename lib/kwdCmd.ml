@@ -1,4 +1,34 @@
-(** A wrapper around Cmdliner *)
+(** {1} KwdCmd: Keywords to Write Command Lines
+
+    Partial porcelain around {{:https://erratique.ch/software/cmdliner}
+    Cmdliner}. Cmdliner is a powerful library for composable command line
+    interfaces, but it is relatively low level, and I always have to look up the
+    documentation to use the combinators correctly.
+
+    This thin wrapper library is just an executable cookbook for common usage
+    patterns of Cmdliner.
+
+    The recipes are divided between module namespaces and detailed with named
+    function arguments.
+
+    The intended usage of this library is to
+
+    {[
+      open KwdCmd
+    ]}
+
+    and configure the toplevel commands for your application
+
+    {[
+      let doc = "A program the shows how to use KwdCmd."
+
+      let cmds = [ (* TODO *) ]
+
+      let () = Exec.select ~name:"Program Name" ~version:"0.1.0" ~doc Required cmds
+    ]}
+
+
+ **)
 
 open Cmdliner
 
@@ -35,27 +65,32 @@ module Optional = struct
       []
 end
 
+(** TODO Document with type annotations *)
+
 let cmd ?man ~name ~doc term = (Term.term_result term, Term.info name ~doc ?man)
 
-let help_cmd ?version ?doc ?sdocs ?exits ?man name =
-  let term =
-    Term.(ret (const (fun _ -> `Help (`Pager, None)) $ Term.pure ()))
-  in
-  let info = Term.info name ?version ?doc ?sdocs ?exits ?man in
-  (term, info)
+module Exec  = struct
 
-let select ?default ?doc ?sdocs ?exits ?man ?version ~name cmds =
-  let default_cmd =
-    match default with
-    | Some d -> d
-    | None   -> help_cmd ?version ?doc ?sdocs ?exits ?man name
-  in
-  Term.(exit @@ eval_choice default_cmd cmds)
+  let help_cmd ?version ?doc ?sdocs ?exits ?man name =
+    let term =
+      Term.(ret (const (fun _ -> `Help (`Pager, None)) $ Term.pure ()))
+    in
+    let info = Term.info name ?version ?doc ?sdocs ?exits ?man in
+    (term, info)
 
-(* TODO Support all of ~Term.info args *)
-let exec ~name ~version ~doc term =
-  let info' = Term.info name ~version ~doc in
-  Term.(exit @@ eval (term, info'))
+  let select ?default ?doc ?sdocs ?exits ?man ?version ~name cmds =
+    let default_cmd =
+      match default with
+      | Some d -> d
+      | None   -> help_cmd ?version ?doc ?sdocs ?exits ?man name
+    in
+    Term.(exit @@ eval_choice default_cmd cmds)
+
+  (* TODO Support all of ~Term.info args *)
+  let run ~name ~version ~doc term =
+    let info' = Term.info name ~version ~doc in
+    Term.(exit @@ eval (term, info'))
+end
 
 (* Re-exports *)
 
