@@ -13,22 +13,18 @@
 
     The intended usage of this library is to
 
-    {[
-      open KwdCmd
-    ]}
+    {[ open KwdCmd ]}
 
     and configure the toplevel commands for your application
 
-    {[
-      let doc = "A program the shows how to use KwdCmd."
+    {[ let doc = "A program the shows how to use KwdCmd."
 
-      let cmds = [ (* TODO *) ]
+    let cmds = [ (* TODO *) ]
 
-      let () = Exec.select ~name:"Program Name" ~version:"0.1.0" ~doc Required cmds
-    ]}
+    let () = Exec.select ~name:"Program Name" ~version:"0.1.0" ~doc Required
+    cmds ]}
 
-
- **)
+    **)
 
 open Cmdliner
 
@@ -66,8 +62,9 @@ module Optional = struct
 
   let pos docv ~conv ~nth =
     let conv' = conv in
-    add_info ~docv (fun info' ->
-        Arg.(value & pos nth Arg.(some conv') None & info'))
+    add_info ~docv
+      (fun info' -> Arg.(value & pos nth Arg.(some conv') None & info'))
+      []
 end
 
 (** TODO Document with type annotations *)
@@ -86,7 +83,7 @@ module Exec = struct
     let default_cmd =
       match default with
       | Some d -> d
-      | None   -> help_cmd ?version ?doc ?sdocs ?exits ?man name
+      | None -> help_cmd ?version ?doc ?sdocs ?exits ?man name
     in
     Term.(exit @@ eval_choice default_cmd cmds)
 
