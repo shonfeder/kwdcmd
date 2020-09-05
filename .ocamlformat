@@ -1,0 +1,8 @@
+dock-collection-brackets = false
+align-cases = true
+break-cases = all
+break-separators = before
+break-infix = fit-or-vertical
+if-then-else = k-r
+nested-match = align
+type-decl = sparse
