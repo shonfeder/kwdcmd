@@ -63,14 +63,18 @@ module Optional = struct
     add_info ~docv
       (fun info' -> Arg.(value & pos_right nth conv' default & info'))
       []
+
+  let pos docv ~conv ~nth =
+    let conv' = conv in
+    add_info ~docv (fun info' ->
+        Arg.(value & pos nth Arg.(some conv') None & info'))
 end
 
 (** TODO Document with type annotations *)
 
 let cmd ?man ~name ~doc term = (Term.term_result term, Term.info name ~doc ?man)
 
-module Exec  = struct
-
+module Exec = struct
   let help_cmd ?version ?doc ?sdocs ?exits ?man name =
     let term =
       Term.(ret (const (fun _ -> `Help (`Pager, None)) $ Term.pure ()))
