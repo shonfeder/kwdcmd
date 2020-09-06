@@ -69,7 +69,7 @@ end
 
 (** TODO Document with type annotations *)
 
-let cmd ?man ~name ~doc term = (Term.term_result term, Term.info name ~doc ?man)
+let cmd ?man ~name ~doc term = (term, Term.info name ~doc ?man)
 
 module Exec = struct
   let help_cmd ?version ?doc ?sdocs ?exits ?man name =
@@ -83,7 +83,7 @@ module Exec = struct
     let default_cmd =
       match default with
       | Some d -> d
-      | None -> help_cmd ?version ?doc ?sdocs ?exits ?man name
+      | None   -> help_cmd ?version ?doc ?sdocs ?exits ?man name
     in
     Term.(exit @@ eval_choice default_cmd cmds)
 
