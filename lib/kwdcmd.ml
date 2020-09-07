@@ -85,7 +85,7 @@ module Exec = struct
       | Some d -> d
       | None   -> help_cmd ?version ?doc ?sdocs ?exits ?man name
     in
-    Term.(exit @@ eval_choice default_cmd cmds)
+    Term.eval_choice default_cmd cmds
 
   (* TODO Support all of ~Term.info args *)
   let run ~name ~version ~doc term =
