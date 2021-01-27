@@ -73,6 +73,7 @@ type 'a cmd = 'a Term.t * Term.info
 let cmd ?man ~name ~doc : 'a Term.t -> 'a cmd =
   fun term -> (term, Term.info name ~doc ?man)
 
+(** Construct CLI entrypoints *)
 module Exec = struct
 
   let help_cmd ?version ?doc ?sdocs ?exits ?man name =
@@ -82,6 +83,7 @@ module Exec = struct
     let info = Term.info name ?version ?doc ?sdocs ?exits ?man in
     (term, info)
 
+  (** Subcommands *)
   let select ?default ?doc ?sdocs ?exits ?man ?version ~name cmds =
     let default_cmd =
       match default with
@@ -90,7 +92,7 @@ module Exec = struct
     in
     Term.eval_choice default_cmd cmds
 
-  (* TODO Support all of ~Term.info args *)
+  (** A single cmd sequence *)
   let run ~name ~version ~doc term =
     let info' = Term.info name ~version ~doc in
     Term.(exit @@ eval (term, info'))
