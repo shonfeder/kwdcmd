@@ -69,9 +69,11 @@ end
 
 (** TODO Document with type annotations *)
 
-let cmd ?man ~name ~doc term = (term, Term.info name ~doc ?man)
+type cmd = 'a Term.t * Term.info
+let cmd ?man ~name ~doc term : cmd = (term, Term.info name ~doc ?man)
 
 module Exec = struct
+
   let help_cmd ?version ?doc ?sdocs ?exits ?man name =
     let term =
       Term.(ret (const (fun _ -> `Help (`Pager, None)) $ Term.pure ()))
