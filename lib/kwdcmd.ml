@@ -39,6 +39,7 @@ module Required = struct
     add_info ~docv
       (fun info' -> Arg.(required & pos nth Arg.(some conv') None & info'))
       []
+
 end
 
 module Optional = struct
@@ -65,6 +66,16 @@ module Optional = struct
     add_info ~docv
       (fun info' -> Arg.(value & pos nth Arg.(some conv') None & info'))
       []
+
+  type 'a choice = 'a * Cmdliner.Arg.info
+
+  (** A choice flag *)
+  let c ~doc ~name : 'option -> 'option choice =
+    fun option -> (option, Arg.info [name] ~doc)
+
+  (** Choose between one of the given choice flags *)
+  let flag_choice ~(default:'option) (options : 'option choice list ) =
+       Arg.(last & vflag_all [default] options)
 end
 
 (** TODO Document with type annotations *)
