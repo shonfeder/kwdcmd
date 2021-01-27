@@ -100,6 +100,8 @@ end
 
 (* Re-exports *)
 
+module Arg = Cmdliner.Arg
+
 let ( $ ) = Term.( $ )
 
 let const = Term.const
