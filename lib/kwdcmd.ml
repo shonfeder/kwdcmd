@@ -69,7 +69,7 @@ end
 
 (** TODO Document with type annotations *)
 
-type cmd = 'a Term.t * Term.info
+type 'a cmd = 'a Term.t * Term.info
 let cmd ?man ~name ~doc term : cmd = (term, Term.info name ~doc ?man)
 
 module Exec = struct
