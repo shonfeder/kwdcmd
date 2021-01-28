@@ -36,16 +36,17 @@ module Required = struct
   let pos docv ~conv ~nth =
     (* Just to avoid name clashing *)
     let conv' = conv in
-    add_info ~docv
+    add_info
+      ~docv
       (fun info' -> Arg.(required & pos nth Arg.(some conv') None & info'))
       []
-
 end
 
 module Optional = struct
   let values docv ~flags ?(default = []) ~conv =
     let conv' = conv in
-    add_info ~docv
+    add_info
+      ~docv
       (fun info' -> Arg.(value & opt_all conv' default & info'))
       flags
 
@@ -57,13 +58,15 @@ module Optional = struct
 
   let all_from docv ~conv ~nth ?(default = []) =
     let conv' = conv in
-    add_info ~docv
+    add_info
+      ~docv
       (fun info' -> Arg.(value & pos_right nth conv' default & info'))
       []
 
   let pos docv ~conv ~nth =
     let conv' = conv in
-    add_info ~docv
+    add_info
+      ~docv
       (fun info' -> Arg.(value & pos nth Arg.(some conv') None & info'))
       []
 
@@ -71,22 +74,22 @@ module Optional = struct
 
   (** A choice flag *)
   let c ~doc ~name : 'option -> 'option choice =
-    fun option -> (option, Arg.info [name] ~doc)
+   fun option -> (option, Arg.info [ name ] ~doc)
 
   (** Choose between one of the given choice flags *)
-  let flag_choice ~(default:'option) (options : 'option choice list ) =
-       Arg.(last & vflag_all [default] options)
+  let flag_choice ~(default : 'option) (options : 'option choice list) =
+    Arg.(last & vflag_all [ default ] options)
 end
 
 (** TODO Document with type annotations *)
 
 type 'a cmd = 'a Term.t * Term.info
+
 let cmd ?man ~name ~doc : 'a Term.t -> 'a cmd =
-  fun term -> (term, Term.info name ~doc ?man)
+ fun term -> (term, Term.info name ~doc ?man)
 
 (** Construct CLI entrypoints *)
 module Exec = struct
-
   let help_cmd ?version ?doc ?sdocs ?exits ?man name =
     let term =
       Term.(ret (const (fun _ -> `Help (`Pager, None)) $ Term.pure ()))
@@ -113,8 +116,15 @@ end
 
 module Arg = Cmdliner.Arg
 
-let ( $ ) = Term.( $ )
-
+(** A constant value used to apply function to term arguments. *)
 let const = Term.const
 
+(** Apply a function to term arguments. *)
+let ( $ ) = Term.( $ )
+
+(** The unit term argument. *)
 let unit = Term.pure ()
+
+let ( let+ ) t f = Term.(const f $ t)
+
+let ( and+ ) a b = Term.(const (fun x y -> (x, y)) $ a $ b)
