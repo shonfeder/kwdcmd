@@ -56,6 +56,7 @@ module Optional = struct
 
   let flag ~flags = add_info (fun info' -> Arg.(value & flag & info')) flags
 
+  (** All the values following from the [nth] position on *)
   let all_from docv ~conv ~nth ?(default = []) =
     let conv' = conv in
     add_info
@@ -76,9 +77,16 @@ module Optional = struct
   let c ~doc ~name : 'option -> 'option choice =
    fun option -> (option, Arg.info [ name ] ~doc)
 
-  (** Choose between one of the given choice flags *)
+  (** Choose between any number of the given choice flags, can be repeated
+      if none of the choices are provded, then use the default choices  *)
+  let flag_choices ~(defaults : 'option list) (options : 'option choice list) =
+    Arg.(value & vflag_all defaults options)
+
+  (* TODO  Make exclusive *)
+
+  (** Choose a single one of the given choice flags *)
   let flag_choice ~(default : 'option) (options : 'option choice list) =
-    Arg.(last & vflag_all [ default ] options)
+    Arg.(value & vflag default options)
 end
 
 (** TODO Document with type annotations *)
