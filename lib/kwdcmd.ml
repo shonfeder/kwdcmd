@@ -1,39 +1,112 @@
-(** {1} KwdCmd: Keywords to Write Command Lines
+(** {1 KwdCmd: Keywords to Write Command Lines}
 
-    Partial porcelain around {{:https://erratique.ch/software/cmdliner}
-    Cmdliner}. Cmdliner is a powerful library for composable command line
-    interfaces, but it is relatively low level, and I always have to look up the
-    documentation to use the combinators correctly.
+    A lightweight and partical porcelain around
+    {{:https://erratique.ch/software/cmdliner} Cmdliner}. Cmdliner is a powerful
+    library for composable command line interfaces, but it is relatively low
+    level. Most users have to look up the documentation every time they want to
+    use the combinators correctly.
 
-    This thin wrapper library is just an executable cookbook for common usage
-    patterns of Cmdliner.
+    This thin wrapper library is best thought of as an executable cookbook for
+    common Cmdliner usage patterns, or as programmtic documentation encoded in
+    the type system.
 
     The recipes are divided between module namespaces and detailed with named
     function arguments.
 
-    The intended usage of this library is to
+    {2 Ideals}
 
-    {[ open KwdCmd ]}
+    - Remain true to the Cmdliners compositional principles (no side-effecting
+      shortcuts or other chicanery).
+    - Unfamiliar users should be able to write their CLIs within 10 minutes of
+      reading the docs.
+    - Familiar users should find everything they need to know to write clean,
+      expressive CLIS's self-documented in the type signatures of the library's
+      modules and functions.
 
-    and configure the toplevel commands for your application
+    Please {{:https://github.com/shonfeder/kwdcmd/issues/new} open an issue} or
+    {{:https://github.com/shonfeder/kwdcmd/blob/master/CONTRIBUTING.org} add a
+    feature} if you think the library could be improved to better meet these
+    ideals.
 
-    {[ let doc = "A program the shows how to use KwdCmd."
+    {2 Usage}
 
-    let cmds = [ (* TODO *) ]
+    TODO
 
-    let () = Exec.select ~name:"Program Name" ~version:"0.1.0" ~doc Required
-    cmds ]}
+    {3 Example}
 
-    **)
+    {[
+      open Kwdcmd
+
+      (** Application configuration *)
+      type kind =
+        | Bin
+        | Lib
+
+      type config =
+        { name : string
+        ; kind : kind
+        }
+
+      (** Application executor *)
+      let run : config -> unit = fun _config -> print_endline "TODO"
+
+      (** CLI entrypoint *)
+      let () =
+        Exec.run ~name:"My application" ~version:"0.0.1" ~doc:"project generator"
+        @@ let+ name =
+             Required.pos
+               "NAME"
+               ~conv:Arg.string
+               ~nth:0
+               ~doc:"The name of the new project"
+               ()
+        and+ kind =
+          Optional.(
+            flag_choice
+              ~default:Bin
+              [ c ~name:"bin" Bin ~doc:"create an executable binary"
+              ; c ~name:"lib" Lib ~doc:"create a library"
+              ])
+        in
+        run { name; kind }
+    ]} *)
 
 open Cmdliner
 
+(** {2 Binding operators}
+
+    The beauty of Cmdliner lies in  its its applicative and composable API.
+    Using this API is made much cleaner by means of binding operators.
+    Naturally, you are not bound to use these. See the example above for usage. *)
+
+(** [(let+) is Term.(const f $ t)]*)
+let ( let+ ) t f = Term.(const f $ t)
+
+(** [(and+) is Term.(const (fun x y -> (x, y)) $ a $ b)]*)
+let ( and+ ) a b = Term.(const (fun x y -> (x, y)) $ a $ b)
+
+(**/**)
+
+(** A mid-level wrapper for constructing Cmdliner.Terms.t. Meant for internal use.*)
 let add_info arg flags ?docs ?docv ?env ?doc () =
   arg Arg.(info ?docs ?docv ?env ?doc flags)
 
+(**/**)
+
+(** {2 Constructing terms}
+
+    We build our CLIs by defining composable terms that transform CLI args into
+    OCaml values. Kwdcmd breaks terms into 2 classes. *)
+
+(** {3 Required terms}
+
+    These must be suplied or the resulting program will fail with error
+    indicating the missing arguments. *)
 module Required = struct
-  (* TODO find way to eliminate the need for nth *)
+  (** [pos docv ~conv ~nth] is a positional argument at the the [nth] position,
+      giving a value derived by [conv] and named [dcov] in the help page. *)
   let pos docv ~conv ~nth =
+    (* TODO find way to eliminate the need for nth *)
     (* Just to avoid name clashing *)
     let conv' = conv in
     add_info
@@ -42,6 +115,7 @@ module Required = struct
       []
 end
 
+(** {3 Optional terms} *)
 module Optional = struct
   let values docv ~flags ?(default = []) ~conv =
     let conv' = conv in
@@ -93,46 +167,48 @@ end
 
 type 'a cmd = 'a Term.t * Term.info
 
+(** A subcommand *)
 let cmd ?man ~name ~doc : 'a Term.t -> 'a cmd =
  fun term -> (term, Term.info name ~doc ?man)
 
+(** A custom help command *)
+let help_cmd ?version ?doc ?sdocs ?exits ?man name =
+  let term =
+    Term.(ret (const (fun _ -> `Help (`Pager, None)) $ Term.pure ()))
+  in
+  let info = Term.info name ?version ?doc ?sdocs ?exits ?man in
+  (term, info)
+
 (** Construct CLI entrypoints *)
 module Exec = struct
-  let help_cmd ?version ?doc ?sdocs ?exits ?man name =
-    let term =
-      Term.(ret (const (fun _ -> `Help (`Pager, None)) $ Term.pure ()))
-    in
-    let info = Term.info name ?version ?doc ?sdocs ?exits ?man in
-    (term, info)
-
-  (** Subcommands *)
+  (** A subcommand selector *)
   let select ?default ?doc ?sdocs ?exits ?man ?version ~name cmds =
     let default_cmd =
       match default with
       | Some d -> d
       | None   -> help_cmd ?version ?doc ?sdocs ?exits ?man name
     in
-    Term.eval_choice default_cmd cmds
+    Term.exit @@ Term.eval_choice default_cmd cmds
 
-  (** A single cmd sequence *)
+  (** A single cmd *)
   let run ~name ~version ~doc term =
     let info' = Term.info name ~version ~doc in
     Term.(exit @@ eval (term, info'))
 end
 
-(* Re-exports *)
+(** {2 Re-exports from cmdliner} *)
 
-module Arg = Cmdliner.Arg
-
-(** A constant value used to apply function to term arguments. *)
+(** [const (v : 'a)] is a ['a Term.t]: i.e. is a term that evaluates to [v] *)
 let const = Term.const
 
-(** Apply a function to term arguments. *)
+(** [f_term $ a_term] evalutes to [f a]: i.e., apply a functional term to
+    argument terms *)
 let ( $ ) = Term.( $ )
 
-(** The unit term argument. *)
+(** [unit] evalutes to [()], i.e. it is the unit term. Given a function
+    [f : unit -> unit]), you can [let term = lift f $ unit] to execuate [f] when
+    [term] is evaluated. *)
 let unit = Term.pure ()
 
-let ( let+ ) t f = Term.(const f $ t)
-
-let ( and+ ) a b = Term.(const (fun x y -> (x, y)) $ a $ b)
+module Arg = Cmdliner.Arg
+module Term = Cmdliner.Term
