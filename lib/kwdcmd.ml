@@ -1,14 +1,14 @@
 (** {1 KwdCmd: Keywords to Write Command Lines}
 
-    A lightweight and partical porcelain around
+    A lightweight and partial porcelain around
     {{:https://erratique.ch/software/cmdliner} Cmdliner}. Cmdliner is a powerful
     library for composable command line interfaces, but it is relatively low
     level. Most users have to look up the documentation every time they want to
     use the combinators correctly.
 
     This thin wrapper library is best thought of as an executable cookbook for
-    common Cmdliner usage patterns, or as programmtic documentation encoded in
-    the type system.
+    common Cmdliner usage patterns, or as programmatic documentation encoded in
+    the type level.
 
     The recipes are divided between module namespaces and detailed with named
     function arguments.
