@@ -1,5 +1,6 @@
-#+TITLE: Kwdcmd: Keywords for Cmdliner CLI's
-#+SUBTITLE: A lightweight and partial porcelain around [[https://erratique.ch/software/cmdliner} ][Cmdliner]].
+#+TITLE: Kwdcmd: Keywords for Cmdliner CLIs
+
+/A lightweight and partial porcelain around [[https://erratique.ch/software/cmdliner} ][Cmdliner]]/
 
 Cmdliner is a powerful library for composable command line interfaces, but it is
 relatively low level.  Most users have to look up the documentation every time
@@ -12,11 +13,11 @@ type level.
 The recipes are divided between module namespaces and the functions are
 documented with named arguments.
 
-This library is in early stages, and is growing as the need for patterns arises.
+This library is in early stages, and is growing as the need for patterns arises .
 
 * Ideals
 
-- Remain true to the Cmdliners compositional principles (no side-effecting
+- Remain true to Cmdliner's compositional principles (no side-effecting
   shortcuts or other chicanery).
 - Unfamiliar users should be able to write their CLIs within 10 minutes of
   reading the docs.
@@ -26,3 +27,84 @@ This library is in early stages, and is growing as the need for patterns arises.
 
 Please [[https://github.com/shonfeder/kwdcmd/issues/new ][open an issue]] or [[https://github.com/shonfeder/kwdcmd/blob/master/CONTRIBUTING.org][add a feature]] if you think the library could be improved
 to better meet these ideals.
+
+* Examples
+
+** Single commands
+
+An interface for a simple project generation tool:
+
+#+begin_src ocaml
+open Kwdcmd
+
+(** Application configuration *)
+type kind =
+  | Bin
+  | Lib
+
+type config =
+  { name : string
+  ; kind : kind
+  }
+
+(** Application executor *)
+let run : config -> unit = fun _config -> print_endline "TODO"
+
+(** CLI entrypoint *)
+let () =
+  Exec.run ~name:"My application" ~version:"0.0.1" ~doc:"project generator"
+  @@ let+ name =
+       Required.pos
+         "NAME"
+         ~conv:Arg.string
+         ~nth:0
+         ~doc:"The name of the new project"
+         ()
+     and+ kind =
+       Optional.(
+         flag_choice
+           ~default:Bin
+           [ c ~name:"bin" Bin ~doc:"create an executable binary"
+           ; c ~name:"lib" Lib ~doc:"create a library"
+           ])
+     in
+     run { name; kind }
+#+end_src
+
+** Sub commands
+
+A sub-command interface for a simple utility for looking up emoji:
+
+#+begin_src ocaml
+open Kwdcmd
+
+let () =
+  Exec.select
+    ~name:"emojitsu"
+    ~version:"0.0.1"
+    ~doc:"Techniques for dealing with emoji"
+    [ ( cmd
+          ~name:"find-name"
+          ~doc:"Find the name of an emoji given its unicode"
+      @@ let+ unicode = Required.pos "UNICODE" ~conv:Arg.string ~nth:0 () in
+         Lib.Github.lookup_name unicode )
+    ; ( cmd
+          ~name:"find-unicode"
+          ~doc:"Find the unicode of an emoji given its name"
+      @@ let+ name = Required.pos "EMOJI_NAME" ~conv:Arg.string ~nth:0 () in
+         Lib.Github.lookup_unicode name )
+    ; ( cmd
+          ~name:"emojify"
+          ~doc:
+            "Replace all names of the form :emoji_name: with the corresponding \
+             unicode in the given file"
+      @@ let+ name =
+           Required.pos
+             "FILE"
+             ~conv:Arg.(conv (Fpath.of_string, Fpath.pp))
+             ~nth:0
+             ()
+         in
+         Lib.Github.emojify name )
+    ]
+#+end_src
