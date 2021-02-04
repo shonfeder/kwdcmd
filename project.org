@@ -1,0 +1,9 @@
+#+TITLE: Project plans
+
+* TODO Generate a hydra/dcss/magit like interface for command lines
+
+Use this as the default when args are given.
+
+This takes the kwdcmd idea even further.
+
+* TODO Add documentation for exit handling
