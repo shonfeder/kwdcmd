@@ -17,7 +17,8 @@
  (description "TODO")
  (depends
   (dune (> 2))
-  cmdliner))
+  (cmdliner (and (>= 1.0.4) (< 1.1.0)))
+  (rresult (and (>= 0.6.0) (< 0.7.0)))))
 
 ;; Local Variables:
 ;; mode: dune

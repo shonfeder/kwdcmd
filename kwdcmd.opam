@@ -9,7 +9,8 @@ homepage: "https://github.com/shonfeder/kwdcmd"
 bug-reports: "https://github.com/shonfeder/kwdcmd/issues"
 depends: [
   "dune" {>= "2.7" & > "2"}
-  "cmdliner"
+  "cmdliner" {>= "1.0.4" & < "1.1.0"}
+  "rresult" {>= "0.6.0" & < "0.7.0"}
   "odoc" {with-doc}
 ]
 build: [
