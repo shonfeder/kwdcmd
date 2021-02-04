@@ -181,19 +181,45 @@ let help_cmd ?version ?doc ?sdocs ?exits ?man name =
 
 (** Construct CLI entrypoints *)
 module Exec = struct
-  (** A subcommand selector *)
-  let select ?default ?doc ?sdocs ?exits ?man ?version ~name cmds =
+  (** [exit_hander result] converts Term.result values to suitable exit conditions *)
+  let exit_handler = function
+    | `Error `Exn -> exit 3
+    | `Error `Parse
+    | `Error `Term ->
+        exit 2
+    | `Ok (Error (`Msg m)) ->
+        Printf.eprintf "error: %s" m;
+        exit 1
+    | _ -> exit 0
+
+  (* TODO Consider making the exit handlnig optional?  *)
+  (** Subcommand selector *)
+  let select
+      ?help
+      ?err
+      ?catch
+      ?env
+      ?argv
+      ?default
+      ?doc
+      ?sdocs
+      ?exits
+      ?man
+      ?version
+      ~name
+      cmds =
     let default_cmd =
       match default with
       | Some d -> d
       | None   -> help_cmd ?version ?doc ?sdocs ?exits ?man name
     in
-    Term.exit @@ Term.eval_choice default_cmd cmds
+    Term.eval_choice ?help ?err ?catch ?env ?argv default_cmd cmds
+    |> exit_handler
 
   (** A single cmd *)
   let run ~name ~version ~doc term =
     let info' = Term.info name ~version ~doc in
-    Term.(exit @@ eval (term, info'))
+    Term.eval (term, info') |> exit_handler
 end
 
 (** {2 Re-exports from cmdliner} *)
