@@ -179,9 +179,21 @@ let help_cmd ?version ?doc ?sdocs ?exits ?man name =
   let info = Term.info name ?version ?doc ?sdocs ?exits ?man in
   (term, info)
 
-(** Construct CLI entrypoints *)
+(** Construct CLI entrypoints
+
+    All the entrypoionts in {! Exec} expect toplevel terms that
+    evalute to [('a, [> `Msg of string]) result]. Any [Error (`Msg msg)]
+    results in an exit codes of [1] with the [msg] printed to [stderr].
+
+    Aditionally:
+
+    - Uncaught execptions return code [3]
+    - Parse errors or term errors return code [2] *)
 module Exec = struct
-  (** [exit_hander result] converts Term.result values to suitable exit conditions *)
+
+
+  (** [exit_hander result] converts Term.result values to suitable exit
+      conditions. *)
   let exit_handler = function
     | `Error `Exn -> exit 3
     | `Error `Parse
@@ -190,10 +202,10 @@ module Exec = struct
     | `Ok (Error (`Msg m)) ->
         Printf.eprintf "error: %s" m;
         exit 1
-    | _ -> exit 0
+    | _ -> ()
 
   (* TODO Consider making the exit handlnig optional?  *)
-  (** Subcommand selector *)
+  (** Subcommand selector entrypoint. *)
   let select
       ?help
       ?err
@@ -216,7 +228,7 @@ module Exec = struct
     Term.eval_choice ?help ?err ?catch ?env ?argv default_cmd cmds
     |> exit_handler
 
-  (** A single cmd *)
+  (** A single cmd entrypoint. *)
   let run ~name ~version ~doc term =
     let info' = Term.info name ~version ~doc in
     Term.eval (term, info') |> exit_handler
