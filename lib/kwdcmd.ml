@@ -190,8 +190,6 @@ let help_cmd ?version ?doc ?sdocs ?exits ?man name =
     - Uncaught execptions return code [3]
     - Parse errors or term errors return code [2] *)
 module Exec = struct
-
-
   (** [exit_hander result] converts Term.result values to suitable exit
       conditions. *)
   let exit_handler = function
@@ -205,6 +203,7 @@ module Exec = struct
     | _ -> ()
 
   (* TODO Consider making the exit handlnig optional?  *)
+
   (** Subcommand selector entrypoint. *)
   let select
       ?help
