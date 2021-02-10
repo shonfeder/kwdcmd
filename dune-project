@@ -1,13 +1,12 @@
 (lang dune 2.7)
 
 (name kwdcmd)
-(version 0.1.0)
+(version 0.0.1)
 
 (generate_opam_files true)
 
-; TODO
 (source (github shonfeder/kwdcmd))
-; (license ISC)
+(license MIT)
 (authors "Shon Feder")
 (maintainers "shon@informal.systems")
 
