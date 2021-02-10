@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Use OCaml ${{ matrix.ocaml-version }}
-        uses: actions-ml/setup-ocaml@master
+        uses: actions-ml/setup-ocaml@55c9556bb1c25347cb0853503f311379b9b9f1f6
         with:
           opam-disable-sandboxing: true
           dune-cache: true
