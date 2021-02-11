@@ -22,7 +22,7 @@ This library is in early stages, and is growing as the need for patterns arises 
 - Unfamiliar users should be able to write their CLIs within 10 minutes of
   reading the docs.
 - Familiar users should find everything they need to know to write clean,
-  expressive CLIS's self-documented in the type signatures of the library's
+  expressive CLI's self-documented in the type signatures of the library's
   modules and functions.
 
 Please [[https://github.com/shonfeder/kwdcmd/issues/new ][open an issue]] or [[https://github.com/shonfeder/kwdcmd/blob/master/CONTRIBUTING.org][add a feature]] if you think the library could be improved
