@@ -28,6 +28,16 @@ This library is in early stages, and is growing as the need for patterns arises 
 Please [[https://github.com/shonfeder/kwdcmd/issues/new ][open an issue]] or [[https://github.com/shonfeder/kwdcmd/blob/master/CONTRIBUTING.org][add a feature]] if you think the library could be improved
 to better meet these ideals.
 
+* Installation
+
+Pin to master with [[https://opam.ocaml.org/doc/Install.html][opam]] via
+
+#+begin_src sh
+opam pin https://github.com/shonfeder/kwdcmd.git
+#+end_src
+
+Or append =#0.0.n= to the URL to pin a specific release.
+
 * Examples
 
 ** Single commands
@@ -73,7 +83,7 @@ let () =
 
 ** Sub commands
 
-A sub-command interface for a simple utility for looking up emoji:
+A sub-command interface to a simple utility for looking up emoji:
 
 #+begin_src ocaml
 open Kwdcmd
