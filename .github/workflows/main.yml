@@ -57,10 +57,12 @@ jobs:
         with:
           ocaml-version: ${{ matrix.ocaml-version }}
           dune-cache: true
-          lint-doc: true
-          opam-disable-sandboxing: true
 
       - run: opam install . --deps-only --with-doc
+
+      - run: opam exec -- dune build @doc
+        env:
+          ODOC_WARN_ERROR: true
 
   lint-fmt:
     strategy:
@@ -79,8 +81,10 @@ jobs:
         with:
           ocaml-version: ${{ matrix.ocaml-version }}
           dune-cache: true
-          lint-fmt: true
-          opam-disable-sandboxing: true
+
+      - run: opam depext ocamlformat=0.16.0 --install
+
+      - run: opam exec -- dune build @fmt
 
   lint-opam:
     strategy:
@@ -98,6 +102,43 @@ jobs:
         uses: actions-ml/setup-ocaml@master
         with:
           ocaml-version: ${{ matrix.ocaml-version }}
+
+      - run: opam depext opam-dune-lint --install
+
+      - run: opam exec -- opam-dune-lint
+
+  deploy-doc:
+    needs:
+      - build
+      - lint-doc
+      - lint-fmt
+      - lint-opam
+
+    strategy:
+      matrix:
+        ocaml-version:
+          - 4.11.x
+
+    runs-on: ubuntu-latest
+
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Use OCaml ${{ matrix.ocaml-version }}
+        uses: actions-ml/setup-ocaml@master
+        with:
+          ocaml-version: ${{ matrix.ocaml-version }}
           dune-cache: true
-          lint-opam: true
-          opam-disable-sandboxing: true
+
+      - run: opam install . --deps-only --with-doc
+
+      - run: opam exec -- dune build @doc
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ github.token }}
+          publish_dir: _build/default/_doc/_html
