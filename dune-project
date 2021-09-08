@@ -31,7 +31,3 @@ This library is in early stages, and is growing as the need for patterns arises 
   (dune (> 2))
   (cmdliner (and (>= 1.0.4) (< 1.1.0)))
   (rresult (and (>= 0.6.0) (< 0.7.0)))))
-
-;; Local Variables:
-;; mode: dune
-;; End:
