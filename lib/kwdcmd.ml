@@ -204,7 +204,30 @@ module Exec = struct
 
   (* TODO Consider making the exit handlnig optional?  *)
 
-  (** Subcommand selector entrypoint. *)
+  (** Subcommand selector entrypoint.
+
+      Example usage:
+
+      {[
+        open Kwdcmd
+
+        let mode = Optional.(flag_choice ~default:"mode-a"
+                              [ c ~name:"a" "mode-a" ~doc:"use mode a"
+                              ; c ~name:"b" "mode-b" ~doc:"use mode b"
+                              ])
+
+
+        let () = select ~name:"myprog" ~version:"9.0.0"
+           [ cmd ~name:"add" ~doc:"add stuff"
+             @@ let* stuff = Required.pos "STUFF" ~conv:Arg.string ~nth:0 ~doc:"The stuff to add" in
+                let+ mode = mode
+                in adder stuff mode
+           ; cmd ~name:"remove" ~doc:"remove things"
+             @@ let* stuff = Required.pos "THINGS" ~conv:Arg.string ~nth:0 ~doc:"The stuff to remove" in
+                let+ mode = mode
+                in remover stuff mode
+           ]
+      ]} *)
   let select
       ?help
       ?err
