@@ -218,7 +218,7 @@ module Exec = struct
       ?man
       ?version
       ~name
-      cmds =
+      (cmds : _ cmd list) =
     let default_cmd =
       match default with
       | Some d -> d
