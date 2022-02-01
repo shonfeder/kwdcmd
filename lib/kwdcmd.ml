@@ -76,7 +76,7 @@ open Cmdliner
 (** {2 Binding operators}
 
     The beauty of Cmdliner lies in  its its applicative and composable API.
-    Using this API is made much cleaner by means of binding operators.
+    Use of this API is made cleaner by means of the binding operators.
     Naturally, you are not bound to use these. See the example above for usage. *)
 
 (** [(let+) is Term.(const f $ t)]*)
@@ -100,10 +100,10 @@ let add_info arg flags ?docs ?docv ?env ?doc () =
 
 (** {3 Required terms}
 
-    These must be suplied or the resulting program will fail with error
+    These must be suplied or the resulting program will fail with an error
     indicating the missing arguments. *)
 module Required = struct
-  (** [pos docv ~conv ~nth] is a positional argument at the the [nth] position,
+  (** [pos docv ~conv ~nth] is a positional argument at the [nth] position,
       giving a value derived by [conv] and named [dcov] in the help page. *)
   let pos docv ~conv ~nth =
     (* TODO find way to eliminate the need for nth *)
@@ -202,7 +202,7 @@ module Exec = struct
         exit 1
     | _ -> ()
 
-  (* TODO Consider making the exit handlnig optional?  *)
+  (* TODO Consider making the exit handling optional?  *)
 
   (** Subcommand selector entrypoint.
 
@@ -217,7 +217,7 @@ module Exec = struct
                               ])
 
 
-        let () = select ~name:"myprog" ~version:"9.0.0"
+        let () = commands ~name:"myprog" ~version:"9.0.0"
            [ cmd ~name:"add" ~doc:"add stuff"
              @@ let* stuff = Required.pos "STUFF" ~conv:Arg.string ~nth:0 ~doc:"The stuff to add" in
                 let+ mode = mode
@@ -228,7 +228,7 @@ module Exec = struct
                 in remover stuff mode
            ]
       ]} *)
-  let select
+  let commands
       ?help
       ?err
       ?catch
@@ -258,7 +258,7 @@ end
 
 (** {2 Re-exports from cmdliner} *)
 
-(** [const (v : 'a)] is a ['a Term.t]: i.e. is a term that evaluates to [v] *)
+(** [const v : 'a)] is a ['a Term.t]: i.e. is a term that evaluates to [v] *)
 let const = Term.const
 
 (** [f_term $ a_term] evalutes to [f a]: i.e., apply a functional term to
