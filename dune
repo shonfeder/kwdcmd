@@ -6,9 +6,9 @@
  (alias runtest)
  (target readme.ml)
  (deps
-   README.md
+  README.md
   (package kwdcmd))
  (action
   (with-stdout-to
-    %{target}
+   %{target}
    (run %{bin:ocaml-mdx} pp %{dep:README.md}))))
