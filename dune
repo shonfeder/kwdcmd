@@ -1,0 +1,14 @@
+(test
+ (name readme)
+ (libraries kwdcmd fpath))
+
+(rule
+ (alias runtest)
+ (target readme.ml)
+ (deps
+   README.md
+  (package kwdcmd))
+ (action
+  (with-stdout-to
+    %{target}
+   (run %{bin:ocaml-mdx} pp %{dep:README.md}))))

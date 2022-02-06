@@ -128,6 +128,10 @@ module Required = struct
       ~docv
       (fun info' -> Arg.(required & pos nth Arg.(some conv') None & info'))
       []
+
+  let pos_all docv ~conv =
+    let conv' = conv in
+    add_info ~docv (fun info' -> Arg.(non_empty & pos_all conv' [] & info')) []
 end
 
 (** {3 Optional terms} *)
@@ -182,6 +186,13 @@ end
 
 type 'a cmd = 'a Term.t * Term.info
 
+type 'err err = [> `Msg of string ] as 'err
+(** Errors the program configured by the CLI can produce. This does not
+    include errors resulting from parsing the CLI. Those are represented by
+    [Term.result]. *)
+
+type ('a, 'err) cmd_result = ('a, 'err err) result
+
 (** A subcommand *)
 let cmd ?man ~name ~doc : 'a Term.t -> 'a cmd =
  fun term -> (term, Term.info name ~doc ?man)
@@ -197,11 +208,6 @@ let help_cmd ?version ?doc ?sdocs ?exits ?man name =
 (** {2 Executing CLIs } *)
 
 module type Exec_handler = sig
-  type 'err err = [> `Msg of string ] as 'err
-  (** Errors the program configured by the CLI can produce. This does not
-      include errors resulting from parsing the CLI. Those are represented by
-      [Term.result]. *)
-
   val err_handler : _ err -> unit
   (** [err_handler err] handles progra errors. *)
 
@@ -300,7 +306,8 @@ module type Exec = sig
       ]} *)
 
   val run :
-       name:string
+       ?man:Manpage.block list
+    -> name:string
     -> version:string
     -> doc:string
     -> ('a, [> `Msg of string ]) result Term.t
@@ -332,8 +339,8 @@ module Make_exec (Handler : Exec_handler) : Exec = struct
     Term.eval_choice ?help ?err ?catch ?env ?argv default_cmd cmds
     |> Handler.exit_handler
 
-  let run ~name ~version ~doc term =
-    let info' = Term.info name ~version ~doc in
+  let run ?man ~name ~version ~doc term =
+    let info' = Term.info name ?man ~version ~doc in
     Term.eval (term, info') |> Handler.exit_handler
 end
 
@@ -360,3 +367,4 @@ let unit = Term.pure ()
 
 module Arg = Cmdliner.Arg
 module Term = Cmdliner.Term
+module Manpage = Cmdliner.Manpage
