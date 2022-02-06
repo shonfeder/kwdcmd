@@ -77,7 +77,22 @@ open Cmdliner
 
     The beauty of Cmdliner lies in  its its applicative and composable API.
     Use of this API is made cleaner by means of the binding operators.
-    Naturally, you are not bound to use these. See the example above for usage. *)
+    Naturally, you are not bound to use these.
+
+    The general schema is
+    {[
+      let+ value_1 = term_1
+      and+ value_2 = term_2
+      (* ... *)
+      and+ value_n = term_n
+      in
+      program value_1 value_2 (* ... *) value_n
+    ]}
+
+    where each [value_i] will be the value obtained by parsing by the the CLI term
+    specified in [term_i].
+
+    See the example above for usage. *)
 
 (** [(let+) is Term.(const f $ t)]*)
 let ( let+ ) t f = Term.(const f $ t)
@@ -179,31 +194,74 @@ let help_cmd ?version ?doc ?sdocs ?exits ?man name =
   let info = Term.info name ?version ?doc ?sdocs ?exits ?man in
   (term, info)
 
-(** Construct CLI entrypoints
+(** {2 Executing CLIs } *)
 
-    All the entrypoionts in {! Exec} expect toplevel terms that
-    evalute to [('a, [> `Msg of string]) result]. Any [Error (`Msg msg)]
-    results in an exit codes of [1] with the [msg] printed to [stderr].
+module type Exec_handler = sig
+  type 'err err = [> `Msg of string ] as 'err
+  (** Errors the program configured by the CLI can produce. This does not
+      include errors resulting from parsing the CLI. Those are represented by
+      {!Term.result}. *)
 
-    Aditionally:
+  val err_handler : _ err -> unit
+  (** [err_handler err] handles progra errors. *)
 
-    - Uncaught execptions return code [3]
-    - Parse errors or term errors return code [2] *)
-module Exec = struct
-  (** [exit_hander result] converts Term.result values to suitable exit
-      conditions. *)
-  let exit_handler = function
+  val exit_handler : (_, _ err) result Term.result -> unit
+  (** [exit_hander result] converts the {!type:Term.result} from a CLI
+      entrypoint into a suitable exit conditions. *)
+end
+
+(** Default exit and error handlers for program execution. *)
+module Default_handler = struct
+  type 'err err = [> `Msg of string ] as 'err
+  (** See {!type:Exec_handler.err}*)
+
+  (** [err_handler err] is the default handler for program execution errors:
+
+      - [(`Msg msg)] results in an exit code of [1] with the [msg] printed to [stderr]
+      - Any other [err] produces a failure *)
+  let err_handler err : unit =
+    match err with
+    | `Msg m ->
+        Printf.eprintf "error: %s" m;
+        exit 1
+    | _      -> failwith "Unexpected program error"
+
+  (** [exit_hander result] converts the {!type:Term.result} from a CLI entrypoint
+      into a suitable exit conditions. It is the default exit handler for the
+      entrypoints in {!mod:Exec}.
+
+    - Uncaught exceptions return code [3]
+    - Parse errors or term errors ([`Error `Parse | `Error `Term]) return code [2]
+    - Execution errors are handled by {!err_handler}. *)
+  let exit_handler : 'a Term.result -> unit = function
     | `Error `Exn -> exit 3
     | `Error `Parse
     | `Error `Term ->
         exit 2
-    | `Ok (Error (`Msg m)) ->
-        Printf.eprintf "error: %s" m;
-        exit 1
+    | `Ok (Error err) -> err_handler err
     | _ -> ()
+end
 
-  (* TODO Consider making the exit handling optional?  *)
+(** CLI entrypoints
 
+    All the entrypoionts in {!Exec} expect toplevel terms that
+    evalute to [('a, [> `Msg of string]) result]. *)
+module type Exec = sig
+  val commands :
+       ?help:Format.formatter
+    -> ?err:Format.formatter
+    -> ?catch:bool
+    -> ?env:(string -> string option)
+    -> ?argv:string array
+    -> ?default:('a, ([> `Msg of string ] as 'b)) result Term.t * Term.info
+    -> ?doc:string
+    -> ?sdocs:string
+    -> ?exits:Term.exit_info list
+    -> ?man:Manpage.block list
+    -> ?version:string
+    -> name:string
+    -> (('a, 'b) result Term.t * Term.info) list
+    -> unit
   (** Subcommand selector entrypoint.
 
       Example usage:
@@ -218,16 +276,40 @@ module Exec = struct
 
 
         let () = commands ~name:"myprog" ~version:"9.0.0"
-           [ cmd ~name:"add" ~doc:"add stuff"
-             @@ let* stuff = Required.pos "STUFF" ~conv:Arg.string ~nth:0 ~doc:"The stuff to add" in
-                let+ mode = mode
-                in adder stuff mode
-           ; cmd ~name:"remove" ~doc:"remove things"
-             @@ let* stuff = Required.pos "THINGS" ~conv:Arg.string ~nth:0 ~doc:"The stuff to remove" in
-                let+ mode = mode
-                in remover stuff mode
-           ]
+            [ ( cmd ~name:"add" ~doc:"add stuff"
+                @@ let+ stuff =
+                     Required.pos
+                       "STUFF"
+                       ~conv:Arg.string
+                       ~nth:0
+                       ~doc:"The stuff to add"
+                and+ mode = mode
+                in
+                adder stuff mode )
+            ; ( cmd ~name:"remove" ~doc:"remove things"
+                @@ let+ stuff =
+                     Required.pos
+                       "THINGS"
+                       ~conv:Arg.string
+                       ~nth:1
+                       ~doc:"The stuff to remove"
+                and+ mode = mode
+                in
+                remover stuff mode )
+            ]
       ]} *)
+
+  val run :
+       name:string
+    -> version:string
+    -> doc:string
+    -> ('a, [> `Msg of string ]) result Term.t
+    -> unit
+  (** A single cmd entrypoint. *)
+end
+
+(** Construct an {!module:Exec} module using the given {!Exec_handler}s *)
+module Make_exec (Handler : Exec_handler) : Exec = struct
   let commands
       ?help
       ?err
@@ -248,13 +330,19 @@ module Exec = struct
       | None   -> help_cmd ?version ?doc ?sdocs ?exits ?man name
     in
     Term.eval_choice ?help ?err ?catch ?env ?argv default_cmd cmds
-    |> exit_handler
+    |> Handler.exit_handler
 
-  (** A single cmd entrypoint. *)
   let run ~name ~version ~doc term =
     let info' = Term.info name ~version ~doc in
-    Term.eval (term, info') |> exit_handler
+    Term.eval (term, info') |> Handler.exit_handler
 end
+
+module Exec : Exec = Make_exec (Default_handler)
+(** The default CLI executors, derived use the {!Default_handler}s for handling exits
+    and errors.
+
+    If your program can produce errors other than those of type [`Msg of string], then
+    you should override {!val:Exec_handler.err_handler}. *)
 
 (** {2 Re-exports from cmdliner} *)
 
