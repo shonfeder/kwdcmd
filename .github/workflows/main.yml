@@ -16,7 +16,7 @@ jobs:
           # - macos-latest
           # - windows-latest
         ocaml-version:
-          - 4.11.x
+          - 4.13.x
           # - 4.10.1
           # - 4.09.1
           # - 4.08.1
@@ -28,117 +28,55 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Use OCaml ${{ matrix.ocaml-version }}
-        uses: actions-ml/setup-ocaml@master
+        uses: ocaml/setup-ocaml@v2
         with:
-          ocaml-version: ${{ matrix.ocaml-version }}
-          dune-cache: true
-          opam-disable-sandboxing: true
+          ocaml-compiler: ${{ matrix.ocaml-version }}
 
       - run: opam install . --deps-only --with-doc --with-test
-
       - run: opam exec -- dune build
-
       - run: opam exec -- dune runtest
 
-  lint-doc:
-    strategy:
-      matrix:
-        ocaml-version:
-          - 4.11.x
-
+  deploy-doc:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Use OCaml ${{ matrix.ocaml-version }}
-        uses: actions-ml/setup-ocaml@master
+      - name: Use OCaml 4.13.x
+        uses: ocaml/setup-ocaml@v2
         with:
-          ocaml-version: ${{ matrix.ocaml-version }}
+          ocaml-compiler: 4.13.x
           dune-cache: true
 
-      - run: opam install . --deps-only --with-doc
-
-      - run: opam exec -- dune build @doc
-        env:
-          ODOC_WARN_ERROR: true
+      - name: Deploy odoc to GitHub Pages
+        uses: ocaml/setup-ocaml/deploy-doc@v2
 
   lint-fmt:
-    strategy:
-      matrix:
-        ocaml-version:
-          - 4.11.x
-
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Use OCaml ${{ matrix.ocaml-version }}
-        uses: actions-ml/setup-ocaml@master
+      - name: Use OCaml 4.13.x
+        uses: ocaml/setup-ocaml@v2
         with:
-          ocaml-version: ${{ matrix.ocaml-version }}
+          ocaml-compiler: 4.13.x
           dune-cache: true
 
-      - run: opam depext ocamlformat=0.16.0 --install
+      - name: Lint fmt
+        uses: ocaml/setup-ocaml/lint-fmt@v2
 
-      - run: opam exec -- dune build @fmt
-
-  lint-opam:
-    strategy:
-      matrix:
-        ocaml-version:
-          - 4.11.x
-
+  lint-doc:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Use OCaml ${{ matrix.ocaml-version }}
-        uses: actions-ml/setup-ocaml@master
+      - name: Use OCaml 4.13.x
+        uses: ocaml/setup-ocaml@v2
         with:
-          ocaml-version: ${{ matrix.ocaml-version }}
-
-      - run: opam depext opam-dune-lint --install
-
-      - run: opam exec -- opam-dune-lint
-
-  deploy-doc:
-    needs:
-      - build
-      - lint-doc
-      - lint-fmt
-      - lint-opam
-
-    strategy:
-      matrix:
-        ocaml-version:
-          - 4.11.x
-
-    runs-on: ubuntu-latest
-
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Use OCaml ${{ matrix.ocaml-version }}
-        uses: actions-ml/setup-ocaml@master
-        with:
-          ocaml-version: ${{ matrix.ocaml-version }}
+          ocaml-compiler: 4.13.x
           dune-cache: true
 
-      - run: opam install . --deps-only --with-doc
-
-      - run: opam exec -- dune build @doc
-
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ github.token }}
-          publish_dir: _build/default/_doc/_html
+      - name: Lint doc
+        uses: ocaml/setup-ocaml/lint-doc@v2
