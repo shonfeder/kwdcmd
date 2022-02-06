@@ -228,7 +228,7 @@ module Default_handler = struct
 
   (** [exit_hander result] converts the {!type:Term.result} from a CLI entrypoint
       into a suitable exit conditions. It is the default exit handler for the
-      entrypoints in {!mod:Exec}.
+      entrypoints in {!module:Exec}.
 
     - Uncaught exceptions return code [3]
     - Parse errors or term errors ([`Error `Parse | `Error `Term]) return code [2]
