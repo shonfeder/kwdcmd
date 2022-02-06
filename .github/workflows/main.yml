@@ -65,18 +65,16 @@ jobs:
 
       - name: Lint fmt
         uses: ocaml/setup-ocaml/lint-fmt@v2
-
-  lint-doc:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Use OCaml 4.13.x
-        uses: ocaml/setup-ocaml@v2
-        with:
-          ocaml-compiler: 4.13.x
-          dune-cache: true
-
-      - name: Lint doc
-        uses: ocaml/setup-ocaml/lint-doc@v2
+  # TODO: Blocked by https://github.com/ocaml/odoc/issues/715
+  # lint-doc:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+  #     - name: Use OCaml 4.13.x
+  #       uses: ocaml/setup-ocaml@v2
+  #       with:
+  #         ocaml-compiler: 4.13.x
+  #         dune-cache: true
+  #     - name: Lint doc
+  #       uses: ocaml/setup-ocaml/lint-doc@v2

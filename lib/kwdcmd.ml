@@ -200,13 +200,13 @@ module type Exec_handler = sig
   type 'err err = [> `Msg of string ] as 'err
   (** Errors the program configured by the CLI can produce. This does not
       include errors resulting from parsing the CLI. Those are represented by
-      {!Term.result}. *)
+      [Term.result]. *)
 
   val err_handler : _ err -> unit
   (** [err_handler err] handles progra errors. *)
 
   val exit_handler : (_, _ err) result Term.result -> unit
-  (** [exit_hander result] converts the {!type:Term.result} from a CLI
+  (** [exit_hander result] converts the [Term.result] from a CLI
       entrypoint into a suitable exit conditions. *)
 end
 
@@ -226,7 +226,7 @@ module Default_handler = struct
         exit 1
     | _      -> failwith "Unexpected program error"
 
-  (** [exit_hander result] converts the {!type:Term.result} from a CLI entrypoint
+  (** [exit_hander result] converts the [Term.result] from a CLI entrypoint
       into a suitable exit conditions. It is the default exit handler for the
       entrypoints in {!module:Exec}.
 
@@ -244,7 +244,7 @@ end
 
 (** CLI entrypoints
 
-    All the entrypoionts in {!Exec} expect toplevel terms that
+    All the entrypoionts in {!module-type:Exec} expect toplevel terms that
     evalute to [('a, [> `Msg of string]) result]. *)
 module type Exec = sig
   val commands :
