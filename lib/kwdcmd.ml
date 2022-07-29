@@ -147,6 +147,7 @@ module Optional = struct
     let conv' = conv in
     add_info ~docv (fun info' -> Arg.(value & opt conv' default & info')) flags
 
+  (** A boolean flag set by any of the [flags] *)
   let flag ~flags = add_info (fun info' -> Arg.(value & flag & info')) flags
 
   (** All the values following from the [nth] position on *)
@@ -166,9 +167,9 @@ module Optional = struct
 
   type 'a choice = 'a * Cmdliner.Arg.info
 
-  (** A choice flag *)
-  let c ~doc ~name : 'option -> 'option choice =
-   fun option -> (option, Arg.info [ name ] ~doc)
+  (** A choice flag for use with [flag_choices] or [flag_choice] *)
+  let c ~doc ~flags : 'option -> 'option choice =
+   fun option -> (option, Arg.info flags ~doc)
 
   (** Choose between any number of the given choice flags, can be repeated
       if none of the choices are provded, then use the default choices  *)
@@ -345,7 +346,7 @@ module Make_exec (Handler : Exec_handler) : Exec = struct
 end
 
 module Exec : Exec = Make_exec (Default_handler)
-(** The default CLI executors, derived use the {!Default_handler}s for handling exits
+(** The default CLI executors, derived using the {!Default_handler}s for handling exits
     and errors.
 
     If your program can produce errors other than those of type [`Msg of string], then

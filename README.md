@@ -90,8 +90,8 @@ let main () =
         Optional.(
             flag_choice
             ~default:Bin
-            [ c ~name:"bin" Bin ~doc:"create an executable binary"
-            ; c ~name:"lib" Lib ~doc:"create a library"
+            [ c ~flags:["bin"] Bin ~doc:"create an executable binary"
+            ; c ~flags:["lib"] Lib ~doc:"create a library"
             ])
         in
         run { name; kind }
