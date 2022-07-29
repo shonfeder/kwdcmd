@@ -1,10 +1,12 @@
-(** {1 KwdCmd: Keywords to Write Command Lines}
+(** {1 Kwdcmd: Keywords to Write Command Lines}
 
-    A lightweight and partial porcelain around
-    {{:https://erratique.ch/software/cmdliner} Cmdliner}. Cmdliner is a powerful
-    library for composable command line interfaces, but it is relatively low
-    level. Most users have to look up the documentation every time they want to
-    use the combinators correctly.
+    Kwdcmd is a lightweight and partial porcelain around
+    {{:https://erratique.ch/software/cmdliner} Cmdliner}.
+
+    Cmdliner is a powerful library for composable command line interfaces, but
+    it is relatively low level. Use of the combinators without reference to the
+    docs requires a deep and thorough knowledge of the library. Kwdcmd wants to
+    be able to be used without having to consult the docs.
 
     This thin wrapper library is best thought of as an executable cookbook for
     common Cmdliner usage patterns, or as programmatic documentation encoded in
@@ -75,9 +77,9 @@ open Cmdliner
 
 (** {2 Binding operators}
 
-    The beauty of Cmdliner lies in  its its applicative and composable API.
-    Use of this API is made cleaner by means of the binding operators.
-    Naturally, you are not bound to use these.
+    The beauty of Cmdliner lies in  its its composable, applicative API.  Use of
+    this API is made cleaner by means of the binding operators.  Naturally, you
+    are not bound to use these.
 
     The general schema is
     {[
