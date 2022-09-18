@@ -13,11 +13,11 @@
     the type level.
 
     The recipes are divided between module namespaces and detailed with named
-    function arguments.
+    function arguments. *)
 
-    {2 Ideals}
+(** {2 Ideals}
 
-    - Remain true to the Cmdliners compositional principles (no side-effecting
+    - Remain true to Cmdliners compositional principles (no side-effecting
       shortcuts or other chicanery).
     - Unfamiliar users should be able to write their CLIs within 10 minutes of
       reading the docs.
@@ -32,9 +32,18 @@
 
     {2 Usage}
 
-    TODO
+    The basic usage pattern is as follows:
 
-    {3 Example}
+    - Define Cmdliner [terms], i.e., parsers producing values from CLI
+      arguments, using the {{!constructors} constructors}.
+    - Use the {{!bindingops} binding operators} to declare a collection of term
+      parsers which are then fed to a program.
+    - Apply an {{!executors} executor} to run the parser and the program.
+
+    CLI programs are defined either as a single command or with multiple
+    subcommands. Here are two short examples to illustrate each case:
+
+    {3 A single command parser}
 
     {[
       open Kwdcmd
@@ -71,11 +80,57 @@
               ])
         in
         run { name; kind }
-    ]} *)
+    ]}
+
+    {3 A sub-command parser}
+
+    A sub-command interface to a simple utility for looking up emoji:
+
+    {[
+      module Example_cli (Progn : sig
+          val lookup_name : string -> (unit, _ err) cmd_result
+          val lookup_unicode : string -> (unit, _ err) cmd_result
+          val emojify : Fpath.t -> (unit, _ err) cmd_result
+        end )
+      = struct
+        open Kwdcmd
+
+        let () =
+          Exec.commands
+            ~name:"emojitsu"
+            ~version:"0.0.1"
+            ~doc:"Techniques for dealing with emoji"
+            [ ( cmd
+                  ~name:"find-name"
+                  ~doc:"Find the name of an emoji given its unicode"
+                @@ let+ unicode = Required.pos "UNICODE" ~conv:Arg.string ~nth:0 () in
+                Progn.lookup_name unicode )
+            ; ( cmd
+                  ~name:"find-unicode"
+                  ~doc:"Find the unicode of an emoji given its name"
+                @@ let+ name = Required.pos "EMOJI_NAME" ~conv:Arg.string ~nth:0 () in
+                Progn.lookup_unicode name )
+            ; ( cmd
+                  ~name:"emojify"
+                  ~doc:
+                    "Replace all names of the form :emoji_name: with the corresponding \
+                     unicode in the given file"
+                @@ let+ name =
+                     Required.pos
+                       "FILE"
+                       ~conv:Arg.(conv (Fpath.of_string, Fpath.pp))
+                       ~nth:0
+                       ()
+                in
+                Progn.emojify name )
+            ]
+      end
+    ]}
+*)
 
 open Cmdliner
 
-(** {2 Binding operators}
+(** {2:bindingops Binding operators}
 
     The beauty of Cmdliner lies in  its its composable, applicative API.  Use of
     this API is made cleaner by means of the binding operators.  Naturally, you
@@ -96,10 +151,10 @@ open Cmdliner
 
     See the example above for usage. *)
 
-(** [(let+) is Term.(const f $ t)]*)
+(** [(let+)] is [Term.(const f $ t)] *)
 let ( let+ ) t f = Term.(const f $ t)
 
-(** [(and+) is Term.(const (fun x y -> (x, y)) $ a $ b)]*)
+(** [(and+)] is [Term.(const (fun x y -> (x, y)) $ a $ b)] *)
 let ( and+ ) a b = Term.(const (fun x y -> (x, y)) $ a $ b)
 
 (**/**)
@@ -110,33 +165,42 @@ let add_info arg flags ?docs ?docv ?env ?doc () =
 
 (**/**)
 
-(** {2 Constructing terms}
+(** {2:constructors Constructing terms}
 
     We build our CLIs by defining composable terms that transform CLI args into
     OCaml values. Kwdcmd breaks terms into 2 classes. *)
 
-(** {3 Required terms}
+(** {3:required Required terms}
 
     These must be suplied or the resulting program will fail with an error
     indicating the missing arguments. *)
 module Required = struct
   (** [pos docv ~conv ~nth] is a positional argument at the [nth] position,
       giving a value derived by [conv] and named [dcov] in the help page. *)
-  let pos docv ~conv ~nth =
+  let pos docv ?(rev=false) ~conv ~nth =
     (* TODO find way to eliminate the need for nth *)
     (* Just to avoid name clashing *)
     let conv' = conv in
     add_info
       ~docv
-      (fun info' -> Arg.(required & pos nth Arg.(some conv') None & info'))
+      (fun info' -> Arg.(required & pos ~rev nth Arg.(some conv') None & info'))
       []
 
-  let pos_all docv ~conv =
+  let pos_all docv ?(default=[]) ~conv =
     let conv' = conv in
-    add_info ~docv (fun info' -> Arg.(non_empty & pos_all conv' [] & info')) []
+    add_info ~docv (fun info' -> Arg.(non_empty & pos_all conv' default & info')) []
+
+  let pos_left docv ?(rev=false) ?(default=[]) ~nth ~conv =
+    let conv' = conv in
+    add_info ~docv (fun info'-> Arg.(non_empty & pos_left ~rev nth conv' default & info')) []
+
 end
 
-(** {3 Optional terms} *)
+(** {3:optional Optional terms}
+
+    These are optional and need not be supplied for the program to run. That
+    means each term will return a default value in case an argument is not
+    supplied. *)
 module Optional = struct
   let values docv ~flags ?(default = []) ~conv =
     let conv' = conv in
@@ -185,9 +249,14 @@ module Optional = struct
     Arg.(value & vflag default options)
 end
 
-(** TODO Document with type annotations *)
+(* TODO Document with type annotations *)
 
 type 'a cmd = 'a Term.t * Term.info
+(** The type of subcommands *)
+
+(** A subcommand *)
+let cmd ?man ~name ~doc : 'a Term.t -> 'a cmd =
+ fun term -> (term, Term.info name ~doc ?man)
 
 type 'err err = [> `Msg of string ] as 'err
 (** Errors the program configured by the CLI can produce. This does not
@@ -195,10 +264,6 @@ type 'err err = [> `Msg of string ] as 'err
     [Term.result]. *)
 
 type ('a, 'err) cmd_result = ('a, 'err err) result
-
-(** A subcommand *)
-let cmd ?man ~name ~doc : 'a Term.t -> 'a cmd =
- fun term -> (term, Term.info name ~doc ?man)
 
 (** A custom help command *)
 let help_cmd ?version ?doc ?sdocs ?exits ?man name =
@@ -251,7 +316,7 @@ module Default_handler = struct
     | _ -> ()
 end
 
-(** CLI entrypoints
+(** {3:executors CLI entrypoint executors}
 
     All the entrypoionts in {!module-type:Exec} expect toplevel terms that
     evalute to [('a, [> `Msg of string]) result]. *)
@@ -310,6 +375,7 @@ module type Exec = sig
 
   val run :
        ?man:Manpage.block list
+    -> ?man_xrefs:Manpage.xref list
     -> name:string
     -> version:string
     -> doc:string
@@ -342,8 +408,8 @@ module Make_exec (Handler : Exec_handler) : Exec = struct
     Term.eval_choice ?help ?err ?catch ?env ?argv default_cmd cmds
     |> Handler.exit_handler
 
-  let run ?man ~name ~version ~doc term =
-    let info' = Term.info name ?man ~version ~doc in
+  let run ?man ?man_xrefs ~name ~version ~doc term =
+    let info' = Term.info name ?man ?man_xrefs ~version ~doc in
     Term.eval (term, info') |> Handler.exit_handler
 end
 
@@ -354,7 +420,9 @@ module Exec : Exec = Make_exec (Default_handler)
     If your program can produce errors other than those of type [`Msg of string], then
     you should override {!val:Exec_handler.err_handler}. *)
 
-(** {2 Re-exports from cmdliner} *)
+(** {2 Re-exports from cmdliner}
+
+    See the Cmdliner documentation for details. *)
 
 (** [const v : 'a)] is a ['a Term.t]: i.e. is a term that evaluates to [v] *)
 let const = Term.const
