@@ -1,3 +1,9 @@
 (executable
  (name rm_example)
+ (modules rm_example)
+ (libraries kwdcmd))
+
+(executable
+ (name cp_example)
+ (modules cp_example)
  (libraries kwdcmd))
