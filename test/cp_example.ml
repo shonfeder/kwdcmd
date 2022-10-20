@@ -39,13 +39,14 @@ let () =
      and+ force =
        Optional.flag
          ~flags:[ "f"; "force" ]
-         ~doc: "If a destination file cannot be opened, remove it and try again."
+         ~doc:"If a destination file cannot be opened, remove it and try again."
          ()
      and+ srcs =
-       Required.pos_all "SOURCE"
-       ~doc:"Source file(s) to copy."
-       ~conv:Arg.file
-       ()
+       Required.pos_all
+         "SOURCE"
+         ~doc:"Source file(s) to copy."
+         ~conv:Arg.file
+         ()
      and+ dest =
        let doc =
          "Destination of the copy. Must be a directory if there is more than \

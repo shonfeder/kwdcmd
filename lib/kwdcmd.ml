@@ -177,23 +177,29 @@ let add_info arg flags ?docs ?docv ?env ?doc () =
 module Required = struct
   (** [pos docv ~conv ~nth] is a positional argument at the [nth] position,
       giving a value derived by [conv] and named [dcov] in the help page. *)
-  let pos docv ?(rev=false) ~conv ~nth =
+  let pos docv ?(rev = false) ~conv ~nth =
     (* TODO find way to eliminate the need for nth *)
     (* Just to avoid name clashing *)
     let conv'' = conv in
     add_info
       ~docv
-      (fun info' -> Arg.(required & pos ~rev nth Arg.(some conv'') None & info'))
+      (fun info' ->
+        Arg.(required & pos ~rev nth Arg.(some conv'') None & info'))
       []
 
-  let pos_all docv ?(default=[]) ~conv =
+  let pos_all docv ?(default = []) ~conv =
     let conv'' = conv in
-    add_info ~docv (fun info' -> Arg.(non_empty & pos_all conv'' default & info')) []
+    add_info
+      ~docv
+      (fun info' -> Arg.(non_empty & pos_all conv'' default & info'))
+      []
 
-  let pos_left docv ?(rev=false) ?(default=[]) ~nth ~conv =
+  let pos_left docv ?(rev = false) ?(default = []) ~nth ~conv =
     let conv'' = conv in
-    add_info ~docv (fun info'-> Arg.(non_empty & pos_left ~rev nth conv'' default & info')) []
-
+    add_info
+      ~docv
+      (fun info' -> Arg.(non_empty & pos_left ~rev nth conv'' default & info'))
+      []
 end
 
 (** {3:optional Optional terms}
@@ -397,12 +403,10 @@ module Exec : Exec = struct
     |> exit
     |> ignore
 
-  let run ?man ?man_xrefs ~name ~version ~doc term  =
+  let run ?man ?man_xrefs ~name ~version ~doc term =
     let info' = Cmd.info name ?man ?man_xrefs ~version ~doc in
     let cmd = Cmd.v info' term in
-    Cmd.eval_result cmd
-    |> exit
-    |> ignore
+    Cmd.eval_result cmd |> exit |> ignore
 end
 
 (** {2 Re-exports from cmdliner}
