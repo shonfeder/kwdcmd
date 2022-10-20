@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Optional (kwdcmd.Kwdcmd.Optional)</title><link rel="stylesheet" href="../../../odoc.css"/><meta charset="utf-8"/><meta name="generator" content="odoc 2.1.0"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><script src="../../../highlight.pack.js"></script><script>hljs.initHighlightingOnLoad();</script></head><body class="odoc"><nav class="odoc-nav"><a href="../index.html">Up</a> – <a href="../../index.html">kwdcmd</a> &#x00BB; <a href="../index.html">Kwdcmd</a> &#x00BB; Optional</nav><header class="odoc-preamble"><h1>Module <code><span>Kwdcmd.Optional</span></code></h1></header><nav class="odoc-toc"><ul><li><a href="#optional-terms">Optional terms</a></li></ul></nav><div class="odoc-content"><h4 id="optional-terms"><a href="#optional-terms" class="anchor"></a>Optional terms</h4><div class="odoc-spec"><div class="spec value" id="val-values" class="anchored"><a href="#val-values" class="anchor"></a><code><span><span class="keyword">val</span> values : 
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Optional (kwdcmd.Kwdcmd.Optional)</title><link rel="stylesheet" href="../../../odoc.css"/><meta charset="utf-8"/><meta name="generator" content="odoc 2.1.1"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><script src="../../../highlight.pack.js"></script><script>hljs.initHighlightingOnLoad();</script></head><body class="odoc"><nav class="odoc-nav"><a href="../index.html">Up</a> – <a href="../../index.html">kwdcmd</a> &#x00BB; <a href="../index.html">Kwdcmd</a> &#x00BB; Optional</nav><header class="odoc-preamble"><h1>Module <code><span>Kwdcmd.Optional</span></code></h1></header><nav class="odoc-toc"><ul><li><a href="#optional">Optional terms</a></li></ul></nav><div class="odoc-content"><h4 id="optional"><a href="#optional" class="anchor"></a>Optional terms</h4><p>These are optional and need not be supplied for the program to run. That means each term will return a default value in case an argument is not supplied.</p><div class="odoc-spec"><div class="spec value" id="val-values" class="anchored"><a href="#val-values" class="anchor"></a><code><span><span class="keyword">val</span> values : 
   <span>string <span class="arrow">&#45;&gt;</span></span>
   <span>flags:<span>string list</span> <span class="arrow">&#45;&gt;</span></span>
   <span>?default:<span><span class="type-var">'a</span> list</span> <span class="arrow">&#45;&gt;</span></span>
   <span>conv:<span><span class="type-var">'a</span> <span class="xref-unresolved">Cmdliner</span>.Arg.conv</span> <span class="arrow">&#45;&gt;</span></span>
   <span>?docs:string <span class="arrow">&#45;&gt;</span></span>
-  <span>?env:<span class="xref-unresolved">Cmdliner</span>.Arg.env <span class="arrow">&#45;&gt;</span></span>
+  <span>?env:<span class="xref-unresolved">Cmdliner</span>.Cmd.Env.info <span class="arrow">&#45;&gt;</span></span>
   <span>?doc:string <span class="arrow">&#45;&gt;</span></span>
   <span>unit <span class="arrow">&#45;&gt;</span></span>
   <span><span><span class="type-var">'a</span> list</span> <span class="xref-unresolved">Cmdliner</span>.Term.t</span></span></code></div></div><div class="odoc-spec"><div class="spec value" id="val-value" class="anchored"><a href="#val-value" class="anchor"></a><code><span><span class="keyword">val</span> value : 
@@ -14,23 +14,23 @@
   <span>default:<span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span>
   <span>conv:<span><span class="type-var">'a</span> <span class="xref-unresolved">Cmdliner</span>.Arg.conv</span> <span class="arrow">&#45;&gt;</span></span>
   <span>?docs:string <span class="arrow">&#45;&gt;</span></span>
-  <span>?env:<span class="xref-unresolved">Cmdliner</span>.Arg.env <span class="arrow">&#45;&gt;</span></span>
+  <span>?env:<span class="xref-unresolved">Cmdliner</span>.Cmd.Env.info <span class="arrow">&#45;&gt;</span></span>
   <span>?doc:string <span class="arrow">&#45;&gt;</span></span>
   <span>unit <span class="arrow">&#45;&gt;</span></span>
   <span><span class="type-var">'a</span> <span class="xref-unresolved">Cmdliner</span>.Term.t</span></span></code></div></div><div class="odoc-spec"><div class="spec value" id="val-flag" class="anchored"><a href="#val-flag" class="anchor"></a><code><span><span class="keyword">val</span> flag : 
   <span>flags:<span>string list</span> <span class="arrow">&#45;&gt;</span></span>
   <span>?docs:string <span class="arrow">&#45;&gt;</span></span>
   <span>?docv:string <span class="arrow">&#45;&gt;</span></span>
-  <span>?env:<span class="xref-unresolved">Cmdliner</span>.Arg.env <span class="arrow">&#45;&gt;</span></span>
+  <span>?env:<span class="xref-unresolved">Cmdliner</span>.Cmd.Env.info <span class="arrow">&#45;&gt;</span></span>
   <span>?doc:string <span class="arrow">&#45;&gt;</span></span>
   <span>unit <span class="arrow">&#45;&gt;</span></span>
-  <span>bool <span class="xref-unresolved">Cmdliner</span>.Term.t</span></span></code></div></div><div class="odoc-spec"><div class="spec value" id="val-all_from" class="anchored"><a href="#val-all_from" class="anchor"></a><code><span><span class="keyword">val</span> all_from : 
+  <span>bool <span class="xref-unresolved">Cmdliner</span>.Term.t</span></span></code></div><div class="spec-doc"><p>A boolean flag set by any of the <code>flags</code></p></div></div><div class="odoc-spec"><div class="spec value" id="val-all_from" class="anchored"><a href="#val-all_from" class="anchor"></a><code><span><span class="keyword">val</span> all_from : 
   <span>string <span class="arrow">&#45;&gt;</span></span>
   <span>conv:<span><span class="type-var">'a</span> <span class="xref-unresolved">Cmdliner</span>.Arg.conv</span> <span class="arrow">&#45;&gt;</span></span>
   <span>nth:int <span class="arrow">&#45;&gt;</span></span>
   <span>?default:<span><span class="type-var">'a</span> list</span> <span class="arrow">&#45;&gt;</span></span>
   <span>?docs:string <span class="arrow">&#45;&gt;</span></span>
-  <span>?env:<span class="xref-unresolved">Cmdliner</span>.Arg.env <span class="arrow">&#45;&gt;</span></span>
+  <span>?env:<span class="xref-unresolved">Cmdliner</span>.Cmd.Env.info <span class="arrow">&#45;&gt;</span></span>
   <span>?doc:string <span class="arrow">&#45;&gt;</span></span>
   <span>unit <span class="arrow">&#45;&gt;</span></span>
   <span><span><span class="type-var">'a</span> list</span> <span class="xref-unresolved">Cmdliner</span>.Term.t</span></span></code></div><div class="spec-doc"><p>All the values following from the <code>nth</code> position on</p></div></div><div class="odoc-spec"><div class="spec value" id="val-pos" class="anchored"><a href="#val-pos" class="anchor"></a><code><span><span class="keyword">val</span> pos : 
@@ -38,10 +38,10 @@
   <span>conv:<span><span class="type-var">'a</span> <span class="xref-unresolved">Cmdliner</span>.Arg.conv</span> <span class="arrow">&#45;&gt;</span></span>
   <span>nth:int <span class="arrow">&#45;&gt;</span></span>
   <span>?docs:string <span class="arrow">&#45;&gt;</span></span>
-  <span>?env:<span class="xref-unresolved">Cmdliner</span>.Arg.env <span class="arrow">&#45;&gt;</span></span>
+  <span>?env:<span class="xref-unresolved">Cmdliner</span>.Cmd.Env.info <span class="arrow">&#45;&gt;</span></span>
   <span>?doc:string <span class="arrow">&#45;&gt;</span></span>
   <span>unit <span class="arrow">&#45;&gt;</span></span>
-  <span><span><span class="type-var">'a</span> option</span> <span class="xref-unresolved">Cmdliner</span>.Term.t</span></span></code></div></div><div class="odoc-spec"><div class="spec type" id="type-choice" class="anchored"><a href="#type-choice" class="anchor"></a><code><span><span class="keyword">type</span> <span>'a choice</span></span><span> = <span class="type-var">'a</span> * <span class="xref-unresolved">Cmdliner</span>.Arg.info</span></code></div></div><div class="odoc-spec"><div class="spec value" id="val-c" class="anchored"><a href="#val-c" class="anchor"></a><code><span><span class="keyword">val</span> c : <span>doc:string <span class="arrow">&#45;&gt;</span></span> <span>name:string <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'option</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'option</span> <a href="#type-choice">choice</a></span></span></code></div><div class="spec-doc"><p>A choice flag</p></div></div><div class="odoc-spec"><div class="spec value" id="val-flag_choices" class="anchored"><a href="#val-flag_choices" class="anchor"></a><code><span><span class="keyword">val</span> flag_choices : 
+  <span><span><span class="type-var">'a</span> option</span> <span class="xref-unresolved">Cmdliner</span>.Term.t</span></span></code></div></div><div class="odoc-spec"><div class="spec type" id="type-choice" class="anchored"><a href="#type-choice" class="anchor"></a><code><span><span class="keyword">type</span> <span>'a choice</span></span><span> = <span class="type-var">'a</span> * <span class="xref-unresolved">Cmdliner</span>.Arg.info</span></code></div></div><div class="odoc-spec"><div class="spec value" id="val-c" class="anchored"><a href="#val-c" class="anchor"></a><code><span><span class="keyword">val</span> c : <span>doc:string <span class="arrow">&#45;&gt;</span></span> <span>flags:<span>string list</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'option</span> <span class="arrow">&#45;&gt;</span></span> <span><span class="type-var">'option</span> <a href="#type-choice">choice</a></span></span></code></div><div class="spec-doc"><p>A choice flag for use with <code>flag_choices</code> or <code>flag_choice</code></p></div></div><div class="odoc-spec"><div class="spec value" id="val-flag_choices" class="anchored"><a href="#val-flag_choices" class="anchor"></a><code><span><span class="keyword">val</span> flag_choices : 
   <span>defaults:<span><span class="type-var">'option</span> list</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span><span><span class="type-var">'option</span> <a href="#type-choice">choice</a></span> list</span> <span class="arrow">&#45;&gt;</span></span>
   <span><span><span class="type-var">'option</span> list</span> <span class="xref-unresolved">Cmdliner</span>.Term.t</span></span></code></div><div class="spec-doc"><p>Choose between any number of the given choice flags, can be repeated if none of the choices are provded, then use the default choices</p></div></div><div class="odoc-spec"><div class="spec value" id="val-flag_choice" class="anchored"><a href="#val-flag_choice" class="anchor"></a><code><span><span class="keyword">val</span> flag_choice : 
