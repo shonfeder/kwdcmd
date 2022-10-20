@@ -24,7 +24,7 @@ homepage: "https://github.com/shonfeder/kwdcmd"
 bug-reports: "https://github.com/shonfeder/kwdcmd/issues"
 depends: [
   "dune" {>= "2.7" & > "2"}
-  "cmdliner" {>= "1.0.4" & < "1.1.1"}
+  "cmdliner" {>= "1.1.1" & < "1.2.0"}
   "rresult" {>= "0.7.0" & < "0.8.0"}
   "mdx" {with-test & >= "1.10.1" & < "1.11.0"}
   "odoc" {with-doc}

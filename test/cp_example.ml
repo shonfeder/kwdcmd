@@ -3,7 +3,7 @@
 let cp verbose recurse force srcs dest =
   let many = List.length srcs > 1 in
   if many && ((not (Sys.file_exists dest)) || not (Sys.is_directory dest)) then
-    Error (`Msg (dest ^ ": not a directory"))
+    Error (dest ^ ": not a directory")
   else
     Ok
       (Printf.printf
@@ -17,18 +17,6 @@ let cp verbose recurse force srcs dest =
 (* Command line interface *)
 
 open Kwdcmd
-
-(* let cmd =
- *   let doc = "Copy files" in
- *   let man_xrefs =
- *     [ `Tool "mv"; `Tool "scp"; `Page ("umask", 2); `Page ("symlink", 7) ]
- *   in
- *   let man =
- *     [ `S Manpage.s_bugs;
- *       `P "Email them to <bugs@example.org>."; ]
- *   in *)
-(* let info = Cmd.info  ~version:"%%VERSION%%" ~doc ~man ~man_xrefs in *)
-(* Cmd.v info Term.(ret (const cp $ verbose $ recurse $ force $ srcs $ dest)) *)
 
 let () =
   Exec.run

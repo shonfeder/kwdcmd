@@ -180,19 +180,19 @@ module Required = struct
   let pos docv ?(rev=false) ~conv ~nth =
     (* TODO find way to eliminate the need for nth *)
     (* Just to avoid name clashing *)
-    let conv' = conv in
+    let conv'' = conv in
     add_info
       ~docv
-      (fun info' -> Arg.(required & pos ~rev nth Arg.(some conv') None & info'))
+      (fun info' -> Arg.(required & pos ~rev nth Arg.(some conv'') None & info'))
       []
 
   let pos_all docv ?(default=[]) ~conv =
-    let conv' = conv in
-    add_info ~docv (fun info' -> Arg.(non_empty & pos_all conv' default & info')) []
+    let conv'' = conv in
+    add_info ~docv (fun info' -> Arg.(non_empty & pos_all conv'' default & info')) []
 
   let pos_left docv ?(rev=false) ?(default=[]) ~nth ~conv =
-    let conv' = conv in
-    add_info ~docv (fun info'-> Arg.(non_empty & pos_left ~rev nth conv' default & info')) []
+    let conv'' = conv in
+    add_info ~docv (fun info'-> Arg.(non_empty & pos_left ~rev nth conv'' default & info')) []
 
 end
 
@@ -203,32 +203,32 @@ end
     supplied. *)
 module Optional = struct
   let values docv ~flags ?(default = []) ~conv =
-    let conv' = conv in
+    let conv'' = conv in
     add_info
       ~docv
-      (fun info' -> Arg.(value & opt_all conv' default & info'))
+      (fun info' -> Arg.(value & opt_all conv'' default & info'))
       flags
 
   let value docv ~flags ~default ~conv =
-    let conv' = conv in
-    add_info ~docv (fun info' -> Arg.(value & opt conv' default & info')) flags
+    let conv'' = conv in
+    add_info ~docv (fun info' -> Arg.(value & opt conv'' default & info')) flags
 
   (** A boolean flag set by any of the [flags] *)
   let flag ~flags = add_info (fun info' -> Arg.(value & flag & info')) flags
 
   (** All the values following from the [nth] position on *)
   let all_from docv ~conv ~nth ?(default = []) =
-    let conv' = conv in
+    let conv'' = conv in
     add_info
       ~docv
-      (fun info' -> Arg.(value & pos_right nth conv' default & info'))
+      (fun info' -> Arg.(value & pos_right nth conv'' default & info'))
       []
 
   let pos docv ~conv ~nth =
-    let conv' = conv in
+    let conv'' = conv in
     add_info
       ~docv
-      (fun info' -> Arg.(value & pos nth Arg.(some conv') None & info'))
+      (fun info' -> Arg.(value & pos nth Arg.(some conv'') None & info'))
       []
 
   type 'a choice = 'a * Cmdliner.Arg.info
@@ -251,12 +251,12 @@ end
 
 (* TODO Document with type annotations *)
 
-type 'a cmd = 'a Term.t * Term.info
+type 'a cmd = 'a Term.t * Cmd.info
 (** The type of subcommands *)
 
 (** A subcommand *)
-let cmd ?man ~name ~doc : 'a Term.t -> 'a cmd =
- fun term -> (term, Term.info name ~doc ?man)
+let cmd ?man ~name ~doc : 'a Term.t -> 'a Cmd.t =
+ fun term -> Cmd.v (Cmd.info name ~doc ?man) term
 
 type 'err err = [> `Msg of string ] as 'err
 (** Errors the program configured by the CLI can produce. This does not
@@ -265,19 +265,11 @@ type 'err err = [> `Msg of string ] as 'err
 
 type ('a, 'err) cmd_result = ('a, 'err err) result
 
-(** A custom help command *)
-let help_cmd ?version ?doc ?sdocs ?exits ?man name =
-  let term =
-    Term.(ret (const (fun _ -> `Help (`Pager, None)) $ Term.pure ()))
-  in
-  let info = Term.info name ?version ?doc ?sdocs ?exits ?man in
-  (term, info)
-
 (** {2 Executing CLIs } *)
 
 module type Exec_handler = sig
   val err_handler : _ err -> unit
-  (** [err_handler err] handles progra errors. *)
+  (** [err_handler err] handles program errors. *)
 
   val exit_handler : (_, _ err) result Term.result -> unit
   (** [exit_hander result] converts the [Term.result] from a CLI
@@ -327,14 +319,14 @@ module type Exec = sig
     -> ?catch:bool
     -> ?env:(string -> string option)
     -> ?argv:string array
-    -> ?default:('a, ([> `Msg of string ] as 'b)) result Term.t * Term.info
+    -> ?default:(unit, string) result Term.t
     -> ?doc:string
     -> ?sdocs:string
-    -> ?exits:Term.exit_info list
+    -> ?exits:Cmd.Exit.info list
     -> ?man:Manpage.block list
     -> ?version:string
     -> name:string
-    -> (('a, 'b) result Term.t * Term.info) list
+    -> (unit, string) result Cmd.t list
     -> unit
   (** Subcommand selector entrypoint.
 
@@ -379,13 +371,12 @@ module type Exec = sig
     -> name:string
     -> version:string
     -> doc:string
-    -> ('a, [> `Msg of string ]) result Term.t
+    -> (unit, string) result Term.t
     -> unit
   (** A single cmd entrypoint. *)
 end
 
-(** Construct an {!module:Exec} module using the given {!Exec_handler}s *)
-module Make_exec (Handler : Exec_handler) : Exec = struct
+module Exec : Exec = struct
   let commands
       ?help
       ?err
@@ -399,26 +390,20 @@ module Make_exec (Handler : Exec_handler) : Exec = struct
       ?man
       ?version
       ~name
-      (cmds : _ cmd list) =
-    let default_cmd =
-      match default with
-      | Some d -> d
-      | None   -> help_cmd ?version ?doc ?sdocs ?exits ?man name
-    in
-    Term.eval_choice ?help ?err ?catch ?env ?argv default_cmd cmds
-    |> Handler.exit_handler
+      (cmds : (unit, string) result Cmd.t list) =
+    let info = Cmd.info ?sdocs ?man ?doc ?exits ?version name in
+    Cmd.group ?default info cmds
+    |> Cmd.eval_result ?help ?err ?catch ?env ?argv
+    |> exit
+    |> ignore
 
-  let run ?man ?man_xrefs ~name ~version ~doc term =
-    let info' = Term.info name ?man ?man_xrefs ~version ~doc in
-    Term.eval (term, info') |> Handler.exit_handler
+  let run ?man ?man_xrefs ~name ~version ~doc term  =
+    let info' = Cmd.info name ?man ?man_xrefs ~version ~doc in
+    let cmd = Cmd.v info' term in
+    Cmd.eval_result cmd
+    |> exit
+    |> ignore
 end
-
-module Exec : Exec = Make_exec (Default_handler)
-(** The default CLI executors, derived using the {!Default_handler}s for handling exits
-    and errors.
-
-    If your program can produce errors other than those of type [`Msg of string], then
-    you should override {!val:Exec_handler.err_handler}. *)
 
 (** {2 Re-exports from cmdliner}
 
@@ -434,7 +419,7 @@ let ( $ ) = Term.( $ )
 (** [unit] evalutes to [()], i.e. it is the unit term. Given a function
     [f : unit -> unit]), you can [let term = lift f $ unit] to execuate [f] when
     [term] is evaluated. *)
-let unit = Term.pure ()
+let unit = Term.const ()
 
 module Arg = Cmdliner.Arg
 module Term = Cmdliner.Term

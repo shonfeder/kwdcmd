@@ -29,6 +29,6 @@ documented with named arguments.
 This library is in early stages, and is growing as the need for patterns arises .")
  (depends
   (dune (> 2))
-  (cmdliner (and (>= 1.0.4) (< 1.1.1)))
+  (cmdliner (and (>= 1.1.1) (< 1.2.0)))
   (rresult (and (>= 0.7.0) (< 0.8.0)))
   (mdx (and :with-test (>= 1.10.1) (< 1.11.0)))))

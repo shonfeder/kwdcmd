@@ -100,9 +100,9 @@ A sub-command interface to a simple utility for looking up emoji:
 
 ``` ocaml
 module Example_cli (Progn : sig 
-    val lookup_name : string -> (unit, _ err) cmd_result
-    val lookup_unicode : string -> (unit, _ err) cmd_result
-    val emojify : Fpath.t -> (unit, _ err) cmd_result
+    val lookup_name : string -> (unit, string) result
+    val lookup_unicode : string -> (unit, string) result
+    val emojify : Fpath.t -> (unit, string) result
   end ) 
   = struct
     open Kwdcmd
