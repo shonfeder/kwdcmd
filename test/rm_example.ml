@@ -56,12 +56,12 @@ let () =
        Optional.(
          flag_choice
            ~default:Always
-           [ c ~doc:"Prompt before every removal." ~flags:[ "i" ] Always
-           ; c
+           [ choice ~doc:"Prompt before every removal." ~flags:[ "i" ] Always
+           ; choice
                ~doc:"Ignore nonexistent files and never prompt."
                ~flags:[ "f" ]
                Never
-           ; c
+           ; choice
                ~doc:
                  "Prompt once before removing more than three files, or when \
                   removing recursively."

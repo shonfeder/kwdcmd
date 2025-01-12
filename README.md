@@ -16,8 +16,7 @@
 *A lightweight and partial porcelain around [Cmdliner](https://erratique.ch/software/cmdliner)*
 
 Cmdliner is a powerful library for composable command line interfaces, but it is
-relatively low level.  Most users have to look up the documentation every time
-they want to use the combinators correctly.
+relatively low level.
 
 This thin wrapper library is best thought of as an executable cookbook for
 common Cmdliner usage patterns, or as programmatic documentation encoded in the
@@ -86,8 +85,8 @@ let main () =
         Optional.(
             flag_choice
             ~default:Bin
-            [ c ~flags:["bin"] Bin ~doc:"create an executable binary"
-            ; c ~flags:["lib"] Lib ~doc:"create a library"
+            [ choice ~flags:["bin"] Bin ~doc:"create an executable binary"
+            ; choice ~flags:["lib"] Lib ~doc:"create a library"
             ])
         in
         run { name; kind }

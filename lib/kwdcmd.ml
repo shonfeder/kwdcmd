@@ -50,36 +50,36 @@
 
       (** Application configuration *)
       type kind =
-        | Bin
-        | Lib
+          | Bin
+          | Lib
 
       type config =
-        { name : string
-        ; kind : kind
-        }
+          { name : string
+          ; kind : kind
+          }
 
-      (** Application executor *)
-      let run : config -> unit = fun _config -> print_endline "TODO"
+      (** Program configure via the CLI *)
+      let run = fun _config -> Ok ()
 
       (** CLI entrypoint *)
-      let () =
-        Exec.run ~name:"My application" ~version:"0.0.1" ~doc:"project generator"
-        @@ let+ name =
-             Required.pos
-               "NAME"
-               ~conv:Arg.string
-               ~nth:0
-               ~doc:"The name of the new project"
-               ()
-        and+ kind =
-          Optional.(
-            flag_choice
-              ~default:Bin
-              [ c ~name:"bin" Bin ~doc:"create an executable binary"
-              ; c ~name:"lib" Lib ~doc:"create a library"
-              ])
-        in
-        run { name; kind }
+      let main () =
+          Exec.run ~name:"My application" ~version:"0.0.1" ~doc:"project generator"
+          @@ let+ name =
+              Required.pos
+                  "NAME"
+                  ~conv:Arg.string
+                  ~nth:0
+                  ~doc:"The name of the new project"
+                  ()
+              and+ kind =
+              Optional.(
+                  flag_choice
+                  ~default:Bin
+                  [ choice ~flags:["bin"] Bin ~doc:"create an executable binary"
+                  ; choice ~flags:["lib"] Lib ~doc:"create a library"
+                  ])
+              in
+              run { name; kind }
     ]}
 
     {3 A sub-command parser}
@@ -88,42 +88,42 @@
 
     {[
       module Example_cli (Progn : sig
-          val lookup_name : string -> (unit, _ err) cmd_result
-          val lookup_unicode : string -> (unit, _ err) cmd_result
-          val emojify : Fpath.t -> (unit, _ err) cmd_result
+          val lookup_name : string -> (unit, string) result
+          val lookup_unicode : string -> (unit, string) result
+          val emojify : Fpath.t -> (unit, string) result
         end )
-      = struct
-        open Kwdcmd
+        = struct
+          open Kwdcmd
 
-        let () =
-          Exec.commands
-            ~name:"emojitsu"
-            ~version:"0.0.1"
-            ~doc:"Techniques for dealing with emoji"
-            [ ( cmd
-                  ~name:"find-name"
-                  ~doc:"Find the name of an emoji given its unicode"
-                @@ let+ unicode = Required.pos "UNICODE" ~conv:Arg.string ~nth:0 () in
-                Progn.lookup_name unicode )
-            ; ( cmd
-                  ~name:"find-unicode"
-                  ~doc:"Find the unicode of an emoji given its name"
-                @@ let+ name = Required.pos "EMOJI_NAME" ~conv:Arg.string ~nth:0 () in
-                Progn.lookup_unicode name )
-            ; ( cmd
-                  ~name:"emojify"
-                  ~doc:
-                    "Replace all names of the form :emoji_name: with the corresponding \
-                     unicode in the given file"
-                @@ let+ name =
-                     Required.pos
-                       "FILE"
-                       ~conv:Arg.(conv (Fpath.of_string, Fpath.pp))
-                       ~nth:0
-                       ()
-                in
-                Progn.emojify name )
-            ]
+          let () =
+              Exec.commands
+              ~name:"emojitsu"
+              ~version:"0.0.1"
+              ~doc:"Techniques for dealing with emoji"
+              [ ( cmd
+                      ~name:"find-name"
+                      ~doc:"Find the name of an emoji given its unicode"
+                  @@ let+ unicode = Required.pos "UNICODE" ~conv:Arg.string ~nth:0 () in
+                      Progn.lookup_name unicode )
+              ; ( cmd
+                      ~name:"find-unicode"
+                      ~doc:"Find the unicode of an emoji given its name"
+                  @@ let+ name = Required.pos "EMOJI_NAME" ~conv:Arg.string ~nth:0 () in
+                      Progn.lookup_unicode name )
+              ; ( cmd
+                      ~name:"emojify"
+                      ~doc:
+                      "Replace all names of the form :emoji_name: with the corresponding \
+                          unicode in the given file"
+                  @@ let+ name =
+                      Required.pos
+                          "FILE"
+                          ~conv:Arg.(conv (Fpath.of_string, Fpath.pp))
+                          ~nth:0
+                          ()
+                      in
+                      Progn.emojify name )
+              ]
       end
     ]}
 *)
@@ -132,11 +132,13 @@ open Cmdliner
 
 (** {2:bindingops Binding operators}
 
-    The beauty of Cmdliner lies in  its its composable, applicative API.  Use of
-    this API is made cleaner by means of the binding operators.  Naturally, you
-    are not bound to use these.
+    The beauty of Cmdliner lies in its composable, applicative API. Binding let
+    us put be applicative action in the background, and just think about value
+    bindings. This is the idiomatic way to use Kwdcmd, but, naturally, it is not
+    required.
 
     The general schema is
+
     {[
       let+ value_1 = term_1
       and+ value_2 = term_2
@@ -146,12 +148,12 @@ open Cmdliner
       program value_1 value_2 (* ... *) value_n
     ]}
 
-    where each [value_i] will be the value obtained by parsing by the the CLI term
+    where each [value_i] will be the value obtained by parsing the CLI term
     specified in [term_i].
 
     See the example above for usage. *)
 
-(** [(let+)] is [Term.(const f $ t)] *)
+(** [(let+)] is [Term.(const f $ v)] *)
 let ( let+ ) t f = Term.(const f $ t)
 
 (** [(and+)] is [Term.(const (fun x y -> (x, y)) $ a $ b)] *)
@@ -172,8 +174,8 @@ let add_info arg flags ?docs ?docv ?env ?doc () =
 
 (** {3:required Required terms}
 
-    These must be suplied or the resulting program will fail with an error
-    indicating the missing arguments. *)
+    Terms defined via the [Required] functions must be supplied or the resulting
+    program will fail with an error reporting the missing arguments. *)
 module Required = struct
   (** [pos docv ~conv ~nth] is a positional argument at the [nth] position,
       giving a value derived by [conv] and named [dcov] in the help page. *)
@@ -204,9 +206,9 @@ end
 
 (** {3:optional Optional terms}
 
-    These are optional and need not be supplied for the program to run. That
-    means each term will return a default value in case an argument is not
-    supplied. *)
+    Terms defined via the [Optional] functions  need not be supplied for the
+    program to run. That means each term will return a default value in case an
+    argument is not supplied. *)
 module Optional = struct
   let values docv ~flags ?(default = []) ~conv =
     let conv'' = conv in
@@ -222,7 +224,7 @@ module Optional = struct
   (** A boolean flag set by any of the [flags] *)
   let flag ~flags = add_info (fun info' -> Arg.(value & flag & info')) flags
 
-  (** All the values following from the [nth] position on *)
+  (** All the values of the arguments from the [nth] position onward. *)
   let all_from docv ~conv ~nth ?(default = []) =
     let conv'' = conv in
     add_info
@@ -230,6 +232,7 @@ module Optional = struct
       (fun info' -> Arg.(value & pos_right nth conv'' default & info'))
       []
 
+  (** The value of the argument at the [nth] position. *)
   let pos docv ~conv ~nth =
     let conv'' = conv in
     add_info
@@ -237,22 +240,25 @@ module Optional = struct
       (fun info' -> Arg.(value & pos nth Arg.(some conv'') None & info'))
       []
 
+  (** A choice flag selecting a value of type ['a] that can be selected with
+      [flag_choice] or [flag_choices]. *)
   type 'a choice = 'a * Cmdliner.Arg.info
 
-  (** A choice flag for use with [flag_choices] or [flag_choice] *)
-  let c ~doc ~flags : 'option -> 'option choice =
+  (** Selects one {!choice} from the [choices], if supplied, or [default]. *)
+  let flag_choice ~(default : 'a) (choice : 'a choice list) =
+    Arg.(value & vflag default choice)
+
+  (** Selects any of the {!choice}s from the [choices], if supplied, or
+      [default].
+
+      The choices can can be repeated. *)
+  let flag_choices ~(defaults : 'a list) (choices: 'a choice list) =
+    Arg.(value & vflag_all defaults choices)
+
+  (** Construct a {!choice} *)
+  let choice ~doc ~flags : 'a -> 'a choice =
    fun option -> (option, Arg.info flags ~doc)
 
-  (** Choose between any number of the given choice flags, can be repeated
-      if none of the choices are provded, then use the default choices  *)
-  let flag_choices ~(defaults : 'option list) (options : 'option choice list) =
-    Arg.(value & vflag_all defaults options)
-
-  (* TODO  Make exclusive *)
-
-  (** Choose a single one of the given choice flags *)
-  let flag_choice ~(default : 'option) (options : 'option choice list) =
-    Arg.(value & vflag default options)
 end
 
 (* TODO Document with type annotations *)
