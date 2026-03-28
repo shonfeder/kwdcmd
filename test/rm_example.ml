@@ -46,7 +46,7 @@ let man =
   ]
 
 let () =
-  Exec.run
+  Exec.command
     ~name:"rm"
     ~version:"%%VERSION%%"
     ~doc:"Remove files or directories"

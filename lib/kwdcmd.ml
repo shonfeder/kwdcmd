@@ -287,47 +287,6 @@ type ('a, 'err) cmd_result = ('a, 'err err) result
 
 (** {2 Executing CLIs } *)
 
-module type Exec_handler = sig
-  val err_handler : _ err -> unit
-  (** [err_handler err] handles program errors. *)
-
-  val exit_handler : (_, _ err) result Term.result -> unit
-  (** [exit_hander result] converts the [Term.result] from a CLI
-      entrypoint into a suitable exit conditions. *)
-end
-
-(** Default exit and error handlers for program execution. *)
-module Default_handler = struct
-  type 'err err = [> `Msg of string ] as 'err
-  (** See {!type:Exec_handler.err}*)
-
-  (** [err_handler err] is the default handler for program execution errors:
-
-      - [(`Msg msg)] results in an exit code of [1] with the [msg] printed to [stderr]
-      - Any other [err] produces a failure *)
-  let err_handler err : unit =
-    match err with
-    | `Msg m ->
-        Printf.eprintf "error: %s" m;
-        exit 1
-    | _      -> failwith "Unexpected program error"
-
-  (** [exit_hander result] converts the [Term.result] from a CLI entrypoint
-      into a suitable exit conditions. It is the default exit handler for the
-      entrypoints in {!module:Exec}.
-
-    - Uncaught exceptions return code [3]
-    - Parse errors or term errors ([`Error `Parse | `Error `Term]) return code [2]
-    - Execution errors are handled by {!err_handler}. *)
-  let exit_handler : 'a Term.result -> unit = function
-    | `Error `Exn -> exit 3
-    | `Error `Parse
-    | `Error `Term ->
-        exit 2
-    | `Ok (Error err) -> err_handler err
-    | _ -> ()
-end
-
 (** {3:executors CLI entrypoint executors} *)
 module type Exec = sig
   val commands :
@@ -341,6 +300,7 @@ module type Exec = sig
     -> ?sdocs:string
     -> ?exits:Cmd.Exit.info list
     -> ?man:Manpage.block list
+    -> ?man_xrefs:Manpage.xref list
     -> ?version:string
     -> name:string
     -> (unit, string) result Cmd.t list
@@ -393,6 +353,7 @@ module type Exec = sig
     -> ?sdocs:string
     -> ?exits:Cmd.Exit.info list
     -> ?man:Manpage.block list
+    -> ?man_xrefs:Manpage.xref list
     -> ?version:string
     -> name:string
     -> (unit, string) result Term.t
@@ -412,11 +373,12 @@ module Exec : Exec = struct
       ?sdocs
       ?exits
       ?man
+      ?man_xrefs
       ?version
       ~name
       (cmds : (unit, string) result Cmd.t list) =
-    let info = Cmd.info ?sdocs ?man ?doc ?exits ?version name in
-    Cmd.group ?default info cmds
+    let info' = Cmd.info ?sdocs ?man ?doc ?exits ?version ?man_xrefs name in
+    Cmd.group ?default info' cmds
     |> Cmd.eval_result ?help ?err ?catch ?env ?argv
     |> exit
     |> ignore
@@ -432,10 +394,11 @@ module Exec : Exec = struct
       ?sdocs
       ?exits
       ?man
+      ?man_xrefs
       ?version
       ~name
       term =
-    let info' = Cmd.info ?sdocs ?man ?doc ?exits ?version name in
+    let info' = Cmd.info ?sdocs ?man ?doc ?exits ?version ?man_xrefs name in
     let cmd = Cmd.v info' term in
     Cmd.eval_result ?help ?err ?catch ?env ?argv cmd |> exit |> ignore
 end

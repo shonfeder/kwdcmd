@@ -19,7 +19,7 @@ let cp verbose recurse force srcs dest =
 open Kwdcmd
 
 let () =
-  Exec.run
+  Exec.command
     ~name:"cp"
     ~version:"%%VERSION%%"
     ~doc:"Copy files"

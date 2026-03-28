@@ -75,7 +75,7 @@ let run = fun _config -> Ok ()
 
 (** CLI entrypoint *)
 let main () =
-    Exec.run ~name:"My application" ~version:"0.0.1" ~doc:"project generator"
+    Exec.command ~name:"My application" ~version:"0.0.1" ~doc:"project generator"
     @@ let+ name =
         Required.pos
             "NAME"
