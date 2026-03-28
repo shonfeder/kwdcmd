@@ -7,3 +7,8 @@
  (name cp_example)
  (modules cp_example)
  (libraries kwdcmd))
+
+(executable
+ (name calc_example)
+ (modules calc_example)
+ (libraries kwdcmd))
