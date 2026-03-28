@@ -7,8 +7,8 @@
 - [Ideals](#ideals)
 - [Installation](#installation)
 - [Examples](#examples)
-- [Single commands](#single-commands)
-- [Sub commands](#sub-commands)
+  - [Single commands](#single-commands)
+  - [Sub commands](#sub-commands)
 
 <!-- markdown-toc end -->
 
@@ -25,17 +25,17 @@ type level.
 The recipes are divided between module namespaces and the functions are
 documented with named arguments.
 
-This library is in early stages, and is growing as the need for patterns arises .
+This library is growing as the need for patterns arises .
 
 # Ideals
 
--   Remain true to Cmdliner's compositional principles (no side-effecting
-    shortcuts or other chicanery).
--   Unfamiliar users should be able to write their CLIs within 10 minutes of
-    reading the docs.
--   Familiar users should find everything they need to know to write clean,
-    expressive CLI's self-documented in the type signatures of the library's
-    modules and functions.
+- Remain true to Cmdliner's compositional principles (no side-effecting
+  shortcuts or other chicanery).
+- Unfamiliar users should be able to write their CLIs within 10 minutes of
+  skimming the docs.
+- Familiar users should find everything they need to know to write clean,
+  expressive CLI's self-documented in the type signatures of the library's
+  modules and functions.
 
 Please [open an issue](https://github.com/shonfeder/kwdcmd/issues/new ) or [add
 a feature](https://github.com/shonfeder/kwdcmd/blob/master/CONTRIBUTING.org) if
@@ -45,7 +45,9 @@ you think the library could be improved to better meet these ideals.
 
 Pin to master with [opam](https://opam.ocaml.org/doc/Install.html) via
 
-    opam pin https://github.com/shonfeder/kwdcmd.git
+```
+opam pin https://github.com/shonfeder/kwdcmd.git
+```
 
 Or append `#0.0.n` to the URL to pin a specific release.
 
@@ -98,11 +100,11 @@ let main () =
 A sub-command interface to a simple utility for looking up emoji:
 
 ``` ocaml
-module Example_cli (Progn : sig 
+module Example_cli (Progn : sig
     val lookup_name : string -> (unit, string) result
     val lookup_unicode : string -> (unit, string) result
     val emojify : Fpath.t -> (unit, string) result
-  end ) 
+  end )
   = struct
     open Kwdcmd
 

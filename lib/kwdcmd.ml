@@ -153,6 +153,14 @@ open Cmdliner
 
     See the example above for usage. *)
 
+(** A choice flag selecting a value of type ['a] that can be selected with
+    [flag_choice] or [flag_choices]. *)
+type 'a choice = 'a * Cmdliner.Arg.info
+
+(** Construct a {!choice} *)
+let choice ~doc ~flags : 'a -> 'a choice =
+  fun option -> (option, Cmdliner.Arg.info flags ~doc)
+
 (** [(let+)] is [Term.(const f $ v)] *)
 let ( let+ ) t f = Term.(const f $ t)
 
@@ -202,6 +210,14 @@ module Required = struct
       ~docv
       (fun info' -> Arg.(non_empty & pos_left ~rev nth conv'' default & info'))
       []
+
+  let value docv ~flags ~conv =
+    let conv'' = Arg.some conv in
+    add_info ~docv (fun info' -> Arg.(required & opt conv'' None & info')) flags
+
+  (** Selects one {!choice} from the [choices], if supplied, or [default]. *)
+  let flag_choice ~(default : 'a) (choice : 'a choice list) =
+    Arg.(required & vflag default choice)
 end
 
 (** {3:optional Optional terms}
