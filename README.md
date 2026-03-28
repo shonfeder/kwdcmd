@@ -70,7 +70,7 @@ type config =
     ; kind : kind
     }
 
-(** Program configure via the CLI *)
+(** Program to configure via the CLI *)
 let run = fun _config -> Ok ()
 
 (** CLI entrypoint *)
@@ -139,3 +139,40 @@ module Example_cli (Progn : sig
         ]
 end
 ```
+
+## Comparisons
+
+A few words of comparison to related projects.
+
+### Cmdliner porcelain
+
+- [ez_cmdliner](https://ocaml.org/p/ez_cmdliner/0.4.3/doc/README.html)
+  provides an [Arg](https://ocaml.org/manual/5.1/api/Arg.html)-style mutable
+  interface to Cmdliner. Kwdcmd is declarative and follows Cmdliner's pure
+  combinator approach.
+
+### PPX based Cmdliner generators
+
+The following PPX rewriters derive Cmdliner parsers from types:
+
+- [ppx_subliner](https://ocaml.org/p/ppx_subliner/latest)
+- [ppx_deriving_cmdliner](https://ocaml.org/p/ppx_deriving_cmdliner/latest)
+- [clim-ppx](https://ocaml.org/p/clim-ppx/latest)
+
+The derivation approach automates much of the CLI specification writing. Kwdcmd
+eschews the added complexity and convenience of derivers, but takes the view
+that the self-documenting nature of the labeled arguments makes usage easy enough.
+
+### Alternative declarative CLI parsers
+
+The following CLI parser libraries take inspiration from Cmdliner, but implement
+alternative parsers, exploring their own points in the design space.
+
+- [cmdlang](https://ocaml.org/p/cmdlang/latest)
+- [climate](https://ocaml.org/p/climate/latest)
+
+I think the interfaces are as simple and self-documenting as Kwdcmd, and if they
+had existed before I started using this approach I might have opted for them
+instead. One possible benefit of Kwdcmd is that, being just a few hundred lines
+of wrapping around Cmdliner, it inherits the robustness and battle-tested nature
+of that venerable CLI parser.

@@ -17,13 +17,13 @@
 
 (** {2 Ideals}
 
-    - Remain true to Cmdliners compositional principles (no side-effecting
-      shortcuts or other chicanery).
+    - Remain true to Cmdliner's compositional principles (no side-effecting
+    shortcuts or other chicanery).
     - Unfamiliar users should be able to write their CLIs within 10 minutes of
-      reading the docs.
+    skimming the docs.
     - Familiar users should find everything they need to know to write clean,
-      expressive CLIS's self-documented in the type signatures of the library's
-      modules and functions.
+    expressive CLI's self-documented in the type signatures of the library's
+    modules and functions.
 
     Please {{:https://github.com/shonfeder/kwdcmd/issues/new} open an issue} or
     {{:https://github.com/shonfeder/kwdcmd/blob/master/CONTRIBUTING.org} add a
@@ -130,6 +130,14 @@
 
 open Cmdliner
 
+type 'a choice = 'a * Cmdliner.Arg.info
+(** A choice flag selecting a value of type ['a] that can be selected with
+    [flag_choice] or [flag_choices]. *)
+
+(** Construct a {!choice} *)
+let choice ~doc ~flags : 'a -> 'a choice =
+ fun option -> (option, Cmdliner.Arg.info flags ~doc)
+
 (** {2:bindingops Binding operators}
 
     The beauty of Cmdliner lies in its composable, applicative API. Binding let
@@ -152,14 +160,6 @@ open Cmdliner
     specified in [term_i].
 
     See the example above for usage. *)
-
-(** A choice flag selecting a value of type ['a] that can be selected with
-    [flag_choice] or [flag_choices]. *)
-type 'a choice = 'a * Cmdliner.Arg.info
-
-(** Construct a {!choice} *)
-let choice ~doc ~flags : 'a -> 'a choice =
-  fun option -> (option, Cmdliner.Arg.info flags ~doc)
 
 (** [(let+)] is [Term.(const f $ v)] *)
 let ( let+ ) t f = Term.(const f $ t)
@@ -188,7 +188,6 @@ module Required = struct
   (** [pos docv ~conv ~nth] is a positional argument at the [nth] position,
       giving a value derived by [conv] and named [dcov] in the help page. *)
   let pos docv ?(rev = false) ~conv ~nth =
-    (* TODO find way to eliminate the need for nth *)
     (* Just to avoid name clashing *)
     let conv'' = conv in
     add_info
@@ -256,28 +255,21 @@ module Optional = struct
       (fun info' -> Arg.(value & pos nth Arg.(some conv'') None & info'))
       []
 
-  (** A choice flag selecting a value of type ['a] that can be selected with
-      [flag_choice] or [flag_choices]. *)
-  type 'a choice = 'a * Cmdliner.Arg.info
-
   (** Selects one {!choice} from the [choices], if supplied, or [default]. *)
   let flag_choice ~(default : 'a) (choice : 'a choice list) =
     Arg.(value & vflag default choice)
 
   (** Selects any of the {!choice}s from the [choices], if supplied, or
-      [default].
+      [defaults].
 
       The choices can can be repeated. *)
-  let flag_choices ~(defaults : 'a list) (choices: 'a choice list) =
+  let flag_choices ~(defaults : 'a list) (choices : 'a choice list) =
     Arg.(value & vflag_all defaults choices)
 
   (** Construct a {!choice} *)
   let choice ~doc ~flags : 'a -> 'a choice =
    fun option -> (option, Arg.info flags ~doc)
-
 end
-
-(* TODO Document with type annotations *)
 
 type 'a cmd = 'a Term.t * Cmd.info
 (** The type of subcommands *)
@@ -336,10 +328,7 @@ module Default_handler = struct
     | _ -> ()
 end
 
-(** {3:executors CLI entrypoint executors}
-
-    All the entrypoionts in {!module-type:Exec} expect toplevel terms that
-    evalute to [('a, [> `Msg of string]) result]. *)
+(** {3:executors CLI entrypoint executors} *)
 module type Exec = sig
   val commands :
        ?help:Format.formatter
@@ -393,15 +382,22 @@ module type Exec = sig
             ]
       ]} *)
 
-  val run :
-       ?man:Manpage.block list
-    -> ?man_xrefs:Manpage.xref list
+  val command :
+       ?help:Format.formatter
+    -> ?err:Format.formatter
+    -> ?catch:bool
+    -> ?env:(string -> string option)
+    -> ?argv:string array
+    -> ?default:(unit, string) result Term.t
+    -> ?doc:string
+    -> ?sdocs:string
+    -> ?exits:Cmd.Exit.info list
+    -> ?man:Manpage.block list
+    -> ?version:string
     -> name:string
-    -> version:string
-    -> doc:string
     -> (unit, string) result Term.t
     -> unit
-  (** A single cmd entrypoint. *)
+  (** A single command entrypoint. *)
 end
 
 module Exec : Exec = struct
@@ -425,10 +421,23 @@ module Exec : Exec = struct
     |> exit
     |> ignore
 
-  let run ?man ?man_xrefs ~name ~version ~doc term =
-    let info' = Cmd.info name ?man ?man_xrefs ~version ~doc in
+  let command
+      ?help
+      ?err
+      ?catch
+      ?env
+      ?argv
+      ?default
+      ?doc
+      ?sdocs
+      ?exits
+      ?man
+      ?version
+      ~name
+      term =
+    let info' = Cmd.info ?sdocs ?man ?doc ?exits ?version name in
     let cmd = Cmd.v info' term in
-    Cmd.eval_result cmd |> exit |> ignore
+    Cmd.eval_result ?help ?err ?catch ?env ?argv cmd |> exit |> ignore
 end
 
 (** {2 Re-exports from cmdliner}
@@ -442,7 +451,7 @@ let const = Term.const
     argument terms *)
 let ( $ ) = Term.( $ )
 
-(** [unit] evalutes to [()], i.e. it is the unit term. Given a function
+(** [unit] evaluates to [()], i.e. it is the unit term. Given a function
     [f : unit -> unit]), you can [let term = lift f $ unit] to execuate [f] when
     [term] is evaluated. *)
 let unit = Term.const ()
