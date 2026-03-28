@@ -26,10 +26,6 @@
   (cmdliner
    (and
     (>= 1.1.1)))
-  (rresult
-   (and
-    (>= 0.7.0)
-    (< 0.8.0)))
   (mdx
    (and
     :with-test
